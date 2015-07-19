@@ -1,0 +1,69 @@
+package com.nus.adqs.dataaccess.scalar;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.nus.adqs.dataaccess.model.security.user.UserAccount;
+import com.nus.adqs.dataaccess.scalar.result.PermissionAccess;
+import com.nus.adqs.enumeration.EnumPermission;
+
+@SuppressWarnings("serial")
+public class UserCredential implements Serializable{
+
+	private List<String> roles = new ArrayList<String>();
+	private Map<String,List<String>> permissions = new HashMap<String, List<String>>();
+	
+	private UserAccount userAccount;
+	public UserAccount getUserAccount() {return userAccount;}
+	public void setUserAccount(UserAccount userAccount) {this.userAccount = userAccount;}
+
+	private String currentPageCode;
+	public String getCurrentPageCode() {return currentPageCode;}
+	public void setCurrentPageCode(String currentPageCode) {this.currentPageCode = currentPageCode;}
+
+	public void setRights(List<PermissionAccess> permissionAccesses){
+		for(PermissionAccess permissionAccess : permissionAccesses){
+			if(!roles.contains(permissionAccess.getReceiverCode()))
+				roles.add(permissionAccess.getReceiverCode());
+			
+			
+			List<String> perms = new ArrayList<String>();
+			if(permissions.containsKey(permissionAccess.getPrivilegeCode()))
+				perms = permissions.get(permissionAccess.getPrivilegeCode());
+			
+			// join both list
+			for(String code : permissionAccess.getPermissions()){
+				if(!perms.contains(code))
+					perms.add(code);
+			}
+			
+			permissions.put(permissionAccess.getPrivilegeCode(), perms);
+		}
+	}
+	
+	public boolean hasPermission(String menuCode, String permissionCode){
+		if(permissions.containsKey(menuCode))
+			return permissions.get(menuCode).contains(permissionCode);
+		
+		return false;
+	}
+	
+	
+	public boolean hasCreatePermission(String menuCode){return this.hasPermission(menuCode, EnumPermission.CREATE.getCode());}
+	public boolean hasReadPermission(String menuCode){return this.hasPermission(menuCode, EnumPermission.READ.getCode());}
+	public boolean hasUpdatePermission(String menuCode){return this.hasPermission(menuCode, EnumPermission.UPDATE.getCode());}
+	public boolean hasDeletePermission(String menuCode){return this.hasPermission(menuCode, EnumPermission.DELETE.getCode());}
+	public boolean hasInvokePermission(String menuCode){return this.hasPermission(menuCode, EnumPermission.INVOKE.getCode());}
+	
+	public boolean hasRoles(String... roles){
+		for(String role : roles){
+			if(this.roles.contains(role))
+				return true;
+		}
+		return false;
+	}
+	
+}

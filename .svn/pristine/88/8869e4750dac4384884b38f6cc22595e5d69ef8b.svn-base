@@ -1,0 +1,21 @@
+package com.nus.adqs.service.task;
+
+import java.util.List;
+
+import com.nus.adqs.annotation.ServiceRegistry;
+import com.nus.adqs.dataaccess.model.taskmanagement.Task;
+import com.nus.adqs.dataaccess.scalar.form.ManagerDashboardEntity;
+import com.nus.adqs.service.BaseService;
+
+@ServiceRegistry(className="com.nus.adqs.service.task.impl.TaskServiceImpl")
+public interface TaskService extends BaseService<Task>{
+	
+	public List<ManagerDashboardEntity> doRetrieveManagmentDashboard();
+	
+	public List<ManagerDashboardEntity> doRetrieveManagmentDashboard(Long taskId);
+	
+	public int doCountUserTaskStatusByType( Long taskId, String type);
+	
+	public ManagerDashboardEntity doRetrieveUserTaskStatusByType( int rowPerPage, int startIndex , Long taskId, String type);
+
+}

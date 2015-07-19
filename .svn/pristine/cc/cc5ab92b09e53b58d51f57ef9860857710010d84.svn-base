@@ -1,0 +1,37 @@
+package com.nus.adqs.dataaccess.scalar;
+
+import java.io.Serializable;
+
+@SuppressWarnings("serial")
+public class SystemParameter implements Serializable{
+
+	
+	private String batchCrawlerSavePath = "C:/workbench/project/development/nus/sample/temp.pdf";
+	public String getBatchCrawlerSavePath() {return batchCrawlerSavePath;}
+	public void setBatchCrawlerSavePath(String batchCrawlerSavePath) {this.batchCrawlerSavePath = batchCrawlerSavePath;}
+	
+	private String batchCrawlerDumpPath = "C:/workbench/project/development/nus/sample/dump/";
+	public String getBatchCrawlerDumpPath() {return batchCrawlerDumpPath;}
+	public void setBatchCrawlerDumpPath(String batchCrawlerDumpPath) {this.batchCrawlerDumpPath = batchCrawlerDumpPath;}
+	
+	private String batchCrawlerDocumentConvertPath = "C:/Program Files (x86)/LibreOffice 4/";
+	public String getBatchCrawlerDocumentConvertPath() {return batchCrawlerDocumentConvertPath;}
+	public void setBatchCrawlerDocumentConvertPath(	String batchCrawlerDocumentConvertPath) {this.batchCrawlerDocumentConvertPath = batchCrawlerDocumentConvertPath;}
+	
+	private String batchCrawlerImageConvertPath = "C:/workbench/project/development/nus/mupdf-1.3-windows/mudraw.exe";
+	public String getBatchCrawlerImageConvertPath() {return batchCrawlerImageConvertPath;}
+	public void setBatchCrawlerImageConvertPath(String batchCrawlerImageConvertPath) {this.batchCrawlerImageConvertPath = batchCrawlerImageConvertPath;}
+	
+	private String batchCrawlerImageOutputPath = "C:/workbench/project/development/nus/sample/dump/dump.png";
+	public String getBatchCrawlerImageOutputPath() {return batchCrawlerImageOutputPath;}
+	public void setBatchCrawlerImageOutputPath(String batchCrawlerImageOutputPath) {this.batchCrawlerImageOutputPath = batchCrawlerImageOutputPath;}
+	
+	
+	
+	/*private static final String SAVE_PATH = "C:/workbench/project/development/nus/sample/temp.pdf";
+	private static final String DUMP_PATH = "C:/workbench/project/development/nus/sample/dump/";
+	private static final String DOC_CONVERTER_PATH = "C:/Program Files (x86)/LibreOffice 4/";
+	private static final String IMAGE_CONVERTER_PATH = "C:/workbench/project/development/nus/mupdf-1.3-windows/mudraw.exe";
+	private static final String IMAGE_OUTPUT_PATH = DUMP_PATH + "dump.png";*/
+	
+}

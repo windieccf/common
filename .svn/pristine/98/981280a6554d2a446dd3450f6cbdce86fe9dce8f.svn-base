@@ -1,0 +1,69 @@
+package com.nus.adqs.dataaccess.model.taskmanagement;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.nus.adqs.constant.ConstantSchema;
+import com.nus.adqs.dataaccess.model.base.BaseEntity;
+
+
+@SuppressWarnings("serial")
+@Entity
+@Table(name="TASK" , schema=ConstantSchema.TMS)
+@SequenceGenerator(name="taskSeq", schema=ConstantSchema.TMS, sequenceName="taskSeq")
+public class Task extends BaseEntity{
+	
+	@Id 
+	@GeneratedValue(strategy=GenerationType.AUTO,generator="taskSeq")
+	@Column(name="ID")
+	private Long id;
+	public Long getId() {return id;}
+	public void setId(Long id) {this.id = id;}
+	@Override
+	public Serializable getPk() {return this.getId();}
+	
+	@Column(name="NAME")
+	private String name;
+	public String getName() {return name;}
+	public void setName(String name) {this.name = name;}
+	
+	@Column(name="DESCRIPTION", length=1000)
+	private String description;
+	public String getDescription() {return description;}
+	public void setDescription(String description) {this.description = description;}
+	
+	@Column(name="START_DATETIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date startDateTime;
+	public Date getStartDateTime() {return startDateTime;}
+	public void setStartDateTime(Date startDateTime) {this.startDateTime = startDateTime;}
+
+	@Column(name="END_DATETIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date endDateTime;
+	public Date getEndDateTime() {return endDateTime;}
+	public void setEndDateTime(Date endDateTime) {this.endDateTime = endDateTime;}
+
+	@OneToMany(mappedBy="task",fetch=FetchType.EAGER, cascade=CascadeType.ALL,orphanRemoval=true)
+	private List<SubTask> subTasks = new ArrayList<SubTask>();
+	public List<SubTask> getSubTasks() {return subTasks;}
+	public void setSubTasks(List<SubTask> subTasks) {this.subTasks = subTasks;}
+	public SubTask addNewSubTask(){return new SubTask(this);}
+	
+	
+}

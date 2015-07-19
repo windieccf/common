@@ -1,0 +1,148 @@
+package com.nus.adqs.service.permission.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.nus.adqs.base.form.BaseForm;
+import com.nus.adqs.constant.ConstantStatus;
+import com.nus.adqs.dataaccess.model.master.PrivilegeType;
+import com.nus.adqs.dataaccess.model.master.UserAccessMatrix;
+import com.nus.adqs.dataaccess.model.security.user.UserAccount;
+import com.nus.adqs.dataaccess.persistence.EmLocator;
+import com.nus.adqs.dataaccess.scalar.PermissionPrivilegeEntity;
+import com.nus.adqs.dataaccess.scalar.result.PermissionAccess;
+import com.nus.adqs.exception.ValidationException;
+import com.nus.adqs.service.impl.BaseServiceImpl;
+import com.nus.adqs.service.permission.PermissionService;
+import com.nus.adqs.util.MathUtil;
+
+public class PermissionServiceImpl extends BaseServiceImpl<UserAccessMatrix> implements PermissionService{
+
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<PermissionPrivilegeEntity> retrieveByPrivilegesCode(String code) {
+		
+		List<PermissionPrivilegeEntity> entities = new ArrayList<PermissionPrivilegeEntity>();
+		PrivilegeType privilegeType = super.getByCode(code,PrivilegeType.class);
+		
+		if(privilegeType != null){
+			
+			StringBuffer mySql = new StringBuffer()
+					.append("	SELECT A.ID, X.PRIV_CODE, X.ROLE_CODE, A.PERM_CODES, X.ROLE_ID FROM ( ")
+					.append("		SELECT R.ID AS ROLE_ID, T.CODE AS PRIV_CODE, R.CODE AS ROLE_CODE  ")
+					.append("		FROM COMMON.PRIVILEGE_TYPE T , COMMON.ROLE_TYPE R  ")	
+					.append("			WHERE 1=1 AND T.CODE =:privCode AND R.STATUS='"+ConstantStatus.ACTIVE+"' ")
+					.append("	) AS X LEFT OUTER JOIN COMMON.USER_ACCESS_MATRIX A ON A.PRIV_CODE = X.PRIV_CODE AND A.RECEIVER_CODE = X.ROLE_CODE ")
+					.append("	ORDER BY A.ID ,X.PRIV_CODE, X.ROLE_CODE ")
+					.append("");
+			
+			List<Object> results = EmLocator.getEm().createNativeQuery(mySql.toString())
+									.setParameter("privCode", privilegeType.getCode())
+									.getResultList();
+			
+			for(Object obj : results){
+				Object[] objs = (Object[])obj;
+				PermissionPrivilegeEntity item = new PermissionPrivilegeEntity();
+				item.setId(MathUtil.convertBigDecimal(objs[0]).longValue());
+				item.setCode((String)objs[2]);
+				item.setPermissions( (String)objs[3] );
+				item.setRoleId(MathUtil.convertBigDecimal(objs[4]).longValue());
+				entities.add(item);
+			}
+			
+		}
+		
+		
+		return entities;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void massUpdatePermissionByPrivilege(PrivilegeType privilegeType, List<PermissionPrivilegeEntity> permissionPrivileges)throws ValidationException, Exception  {
+		List<String> errors = new ArrayList<String>();
+		if(privilegeType == null)
+			errors.add("Privilege Code is required");
+		
+		if(!errors.isEmpty())
+			throw new ValidationException(errors);
+		
+		List<UserAccessMatrix> entities = EmLocator.getEm().createNamedQuery(UserAccessMatrix.LIST_BY_PRIVILEGE_CODE)
+												.setParameter("privilegeCode", privilegeType.getCode())
+												.getResultList();
+		
+		for(PermissionPrivilegeEntity item : permissionPrivileges ){
+			UserAccessMatrix entity = this.retrieveEntityByRole(entities, privilegeType.getCode(), item.getCode());
+			entity.setPermissionCodes(item.getPermissionsAsString());
+			if(entity.isPkSet())
+				EmLocator.getEm().merge(entity);
+			else
+				EmLocator.getEm().persist(entity);
+		}
+		EmLocator.getEm().flush();
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<PermissionAccess>  getPermissionsByUserAccount(UserAccount userAccount) throws Exception{
+		if(userAccount == null )
+			throw new IllegalArgumentException("PermissionServiceImpl.getPermissionsByUserAccount : userAccount must not be null");
+		
+		List<PermissionAccess> permissions = new ArrayList<PermissionAccess>();
+		
+		StringBuffer mySql = new StringBuffer()
+						.append(" SELECT 0 AS ID, UA.PERM_CODES, UA.PRIV_CODE, UA.RECEIVER_CODE ")
+						.append("	FROM COMMON.USER_ACCESS_MATRIX UA ")
+						.append("	INNER JOIN COMMON.ROLE_TYPE R ON R.CODE = UA.RECEIVER_CODE ")
+						.append("	INNER JOIN COMMON.USER_ROLE UR ON UR.ROLE_ID = R.ID ")
+						.append("	INNER JOIN COMMON.USER_ACCOUNT A ON A.ID = UR.USER_ACCOUNT_ID ")
+						.append("	WHERE 1=1  ")
+						.append("	AND UA.PERM_CODES IS NOT NULL ")
+						.append("	AND A.ID =:userAccountId");			    
+		
+		/*List<PermissionAccess> permissions = EmLocator.getEm().createNativeQuery(mySql.toString(), PermissionAccess.class)
+													.setParameter("userAccountId", userAccount.getId())
+													.getResultList();*/
+		
+		List<Object> result= EmLocator.getEm().createNativeQuery(mySql.toString())
+										.setParameter("userAccountId", userAccount.getId())
+										.getResultList();
+		
+		for(Object obj : result){
+			Object[] objs  =  (Object[]) obj;
+			PermissionAccess permission = new PermissionAccess();
+			permission.setPermissionCodes((String)objs[1]);
+			permission.setPrivilegeCode((String)objs[2]);
+			permission.setReceiverCode((String)objs[3]);
+			permissions.add(permission);
+		}
+		
+		
+		return permissions;
+		
+		
+		
+	}
+	
+	private UserAccessMatrix retrieveEntityByRole(List<UserAccessMatrix> entities,String privilegeCode, String roleCode){
+		UserAccessMatrix item = new UserAccessMatrix();
+		for(UserAccessMatrix entity : entities){
+			if(entity.getReceiverCode().equals(roleCode)){
+				item = entity;
+				break;
+			}
+		}
+		
+		if(!item.isPkSet()){
+			item.setReceiverCode(roleCode);
+			item.setPrivilegeCode(privilegeCode);
+		}
+		
+		return item;
+	}
+
+	@Override
+	public void validate(@SuppressWarnings("rawtypes") BaseForm form) throws ValidationException, Exception {
+		/*IGNORED*/
+	}
+
+}

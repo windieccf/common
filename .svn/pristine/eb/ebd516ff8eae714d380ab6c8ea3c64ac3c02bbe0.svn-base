@@ -1,0 +1,223 @@
+package com.nus.adqs.service.task.impl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.nus.adqs.base.form.BaseForm;
+import com.nus.adqs.constant.ConstantStatus;
+import com.nus.adqs.constant.ConstantTaskTemplate;
+import com.nus.adqs.dataaccess.model.taskmanagement.SubTask;
+import com.nus.adqs.dataaccess.model.taskmanagement.SubTaskDocument;
+import com.nus.adqs.dataaccess.model.taskmanagement.Task;
+import com.nus.adqs.dataaccess.model.taskmanagement.template.SubTaskDocumentTemplate;
+import com.nus.adqs.dataaccess.model.taskmanagement.template.SubTaskTemplate;
+import com.nus.adqs.dataaccess.model.taskmanagement.template.TaskTemplate;
+import com.nus.adqs.dataaccess.persistence.EmLocator;
+import com.nus.adqs.exception.ValidationException;
+import com.nus.adqs.service.impl.BaseServiceImpl;
+import com.nus.adqs.service.task.TaskService;
+import com.nus.adqs.service.task.TaskTemplateService;
+import com.nus.adqs.util.BeanUtil;
+import com.nus.adqs.util.DateUtil;
+import com.nus.adqs.util.StringUtil;
+
+public class TaskTemplateServiceImpl extends BaseServiceImpl<TaskTemplate> implements TaskTemplateService{
+
+	
+	
+	@SuppressWarnings("unchecked")
+	public void generateTaskFromTemplate(Date callTime) throws Exception{
+		
+		
+		List<TaskTemplate> templates = EmLocator.getEm().createQuery("SELECT e FROM TaskTemplate e WHERE e.status=:status and e.nextRunTime <=:nextRunTime ")
+												.setParameter("status", ConstantStatus.ACTIVE)
+												.setParameter("nextRunTime", callTime)
+												.getResultList();
+		
+		
+		Date startDate = DateUtil.getStartOfDay(callTime);
+		for(TaskTemplate template : templates){
+			
+			try{
+				EmLocator.getEm().getTransaction().begin();
+				
+				// initiate generate procedure
+				Task task = new Task();
+				BeanUtil.copyProperties(task, template, super.generateCopyExclusionWithDefault("startDateTime","endDateTime","taskTemplateId","taskTemplate","subTasks"));
+				task.setDescription("Generated");
+				task.setStartDateTime(DateUtil.getStartOfDay(callTime));
+				EmLocator.getEm().persist(task);
+
+				// set the sub task
+				for(SubTaskTemplate subTemplate : template.getSubTaskTemplates()){
+					SubTask subTask = task.addNewSubTask();
+					BeanUtil.copyProperties(subTask, subTemplate, super.generateCopyExclusionWithDefault("startDateTime","endDateTime","status01","taskId","task","documents","assignments"));
+					Date subTaskStartDate = DateUtil.getStartOfDay(callTime);
+					subTaskStartDate = subTemplate.generateStartDate(subTaskStartDate);
+					subTask.setStartDateTime(subTaskStartDate);
+					subTask.setEndDateTime(subTemplate.generateEndDate(subTaskStartDate));
+					
+					EmLocator.getEm().persist(subTask);
+					for(SubTaskDocumentTemplate subDocumentTemplate : subTemplate.getDocumentTemplates()){
+						SubTaskDocument subTaskDocument = subTask.addNewDocument();
+						BeanUtil.copyProperties(subTaskDocument, subDocumentTemplate, super.generateCopyExclusionWithDefault("subTaskId","subTask"));
+						EmLocator.getEm().persist(subTaskDocument);
+					}
+				}
+				
+				task.setStartDateTime(startDate);
+				task.setStatus(ConstantStatus.TMS_TASK_DRAFT);
+				task.presetTaskEndDate();
+				template.addTask(task);
+				template.resetNextRunTime();
+				template.setLastRunTime(callTime);
+				if(template.isOneTime())
+					template.setStatus(ConstantStatus.DELETED);
+				
+				EmLocator.getEm().persist(task);
+				EmLocator.getEm().persist(template);
+				
+				//EmLocator.getEm().persist(docArchive);
+				EmLocator.getEm().flush();
+				EmLocator.getEm().getTransaction().commit();
+			}catch(Exception e){
+				e.printStackTrace();
+				EmLocator.getEm().getTransaction().rollback();						
+			}
+			
+			
+			
+		}
+		
+		
+	}
+	
+	
+	
+	public TaskTemplate save(BaseForm<TaskTemplate> form)throws ValidationException, Exception {
+		//1. validate the form
+		this.validate(form);
+		
+		//2. copy form properties
+		TaskTemplate formEntity = form.getSelectedEntity();
+		TaskTemplate entity = new TaskTemplate();
+		if(formEntity.isPkSet())
+			entity = super.getById(formEntity.getPk());
+		
+		BeanUtil.copyProperties(entity, formEntity, super.generateCopyExclusionWithDefault("code","description","lastRunTime","taskStatus","runClassName","subTaskTemplates","tasks"));
+		entity.setName(formEntity.getTransientTask().getName());
+		entity.setStatus(ConstantStatus.ACTIVE);
+		
+		if(entity.isOneTime()){
+			entity.setRecur(0L);
+		}else if(entity.isHourly() || entity.isDaily()){
+			entity.setRunOnDates(null);
+			entity.setRunOnDays(null);
+			entity.setRunOnMonths(null);
+		}else if(entity.isWeekly()){
+			entity.setRunOnDates(null);
+			entity.setRunOnMonths(null);
+			entity.setRunOnDays( StringUtils.join(form.getParameterAsList(String.class, "runDays"),","));
+		}else{
+			entity.setRunOnDays(null);
+			entity.setRunOnDates(StringUtils.join(form.getParameterAsList(String.class, "runMonthDates"), ","));
+			entity.setRunOnMonths(StringUtils.join(form.getParameterAsList(String.class, "runMonths"), ","));
+		}
+		
+		EmLocator.getEm().persist(entity);
+
+		
+		//3. bind Task to the task template (if applicable)
+		if((formEntity.getTransientTask()!=null) &&  (formEntity.getTransientTask().getId()!=null) ){
+			TaskService taskService = new TaskServiceImpl();
+			Task task = taskService.getById(formEntity.getTransientTask().getId());
+			if(task.getTaskTemplate() == null){
+				entity.addTask(task);
+				EmLocator.getEm().persist(task);
+			}
+			
+			
+			
+			//4. if PK is not set, we need to populate the template
+			if(!formEntity.isPkSet()){
+
+				//4.1 preparation
+				
+				//4.2 loop through the sub tasks
+				for(SubTask subTask : task.getSubTasks()){
+					
+					//4.3 copy sub task property
+					SubTaskTemplate subtaskTemplate = entity.addNewSubTaskTemplate();
+					BeanUtil.copyProperties(subtaskTemplate, subTask,  super.generateCopyExclusionWithDefault("startDateTime","endDateTime","documentTemplates","taskTemplateId","startRule","offSetDay","duration","taskTemplate") );
+					
+					//4.4 calculate sub task start to end time rule
+					//calculate the sub task template
+					subtaskTemplate.setStartRule(ConstantTaskTemplate.RULE_WITH_MAIN_TASK);
+					subtaskTemplate.setOffSetDay( Integer.parseInt(  Long.toString(DateUtil.getDateDifference(  DateUtil.getStartOfDay(task.getStartDateTime()) , 
+														DateUtil.getStartOfDay(subTask.getStartDateTime()), 
+														DateUtil.ELAPSED_FMT.DAY))  )); 
+					subtaskTemplate.setDuration( Integer.parseInt(  Long.toString(DateUtil.getDateDifference(  DateUtil.getStartOfDay(subTask.getStartDateTime()) , 
+																	DateUtil.getStartOfDay(subTask.getEndDateTime()), 
+																	DateUtil.ELAPSED_FMT.DAY))  )); 
+					
+					EmLocator.getEm().persist(subtaskTemplate);
+					
+					//4.5 loop through available document template
+					
+					for(SubTaskDocument subTaskDocument : subTask.getDocuments()){
+						SubTaskDocumentTemplate documentTemplate = subtaskTemplate.addNewDocumentTemplate();
+						BeanUtil.copyProperties(documentTemplate, subTaskDocument, super.generateCopyExclusionWithDefault("subTaskTemplateId","subTaskTemplate"));
+						EmLocator.getEm().persist(documentTemplate);
+					}
+				}
+			}
+		}
+		
+		
+		
+		
+		
+		EmLocator.getEm().flush();	
+		return entity;
+	}
+	
+	
+	@Override
+	public void validate(BaseForm<TaskTemplate> form) throws ValidationException, Exception {
+
+		TaskTemplate entity = form.getSelectedEntity();
+		List<String> errors = new ArrayList<String>();
+		
+		
+		if(StringUtil.isEmpty(entity.getTemplateName()))
+			errors.add("Template name is required");
+		
+		if(entity.getNextRunTime() == null)
+			errors.add("Next run time is required");
+		
+		if(entity.isHourly() || entity.isDaily() || entity.isWeekly()){
+			if(entity.getRecur() == null)
+				errors.add("Recurring is required");
+		}
+		
+		if(entity.isWeekly() && form.getParameterAsList(String.class, "runDays").isEmpty())
+			errors.add("Run on days is required");
+		
+		if(entity.isMonthly() ){
+			if(form.getParameterAsList(String.class, "runMonths").isEmpty())
+				errors.add("Run on months is required");
+			
+			if(form.getParameterAsList(String.class, "runMonthDates").isEmpty())
+				errors.add("Run dates is required");
+		}
+			
+		if(!errors.isEmpty())
+			throw new ValidationException(errors);
+		
+		
+	}
+
+}

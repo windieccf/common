@@ -1,0 +1,62 @@
+package com.nus.adqs.dataaccess.model.taskmanagement;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+import com.nus.adqs.constant.ConstantSchema;
+import com.nus.adqs.dataaccess.model.base.BaseEntity;
+
+
+@SuppressWarnings("serial")
+@Entity
+@Table(name="SUB_TASK_SUBS")
+@SequenceGenerator(name="subTaskSubsSeq", schema=ConstantSchema.TMS, sequenceName="subTaskSubsSeq")
+public class SubTaskSubmission extends BaseEntity{
+
+	@Id 
+	@GeneratedValue(strategy=GenerationType.AUTO,generator="subTaskSubsSeq")
+	@Column(name="ID")
+	private Long id;
+	public Long getId() {return id;}
+	public void setId(Long id) {this.id = id;}
+	@Override
+	public Serializable getPk() {return this.getId();}
+	
+	@Column(name="SUB_TASK_ASGN_ID")
+	private Long subTaskAssignmentId;
+	public Long getSubTaskAssignmentId() {return subTaskAssignmentId;}
+	public void setSubTaskAssignmentId(Long subTaskAssignmentId) {this.subTaskAssignmentId = subTaskAssignmentId;}
+	
+	@Column(name="DOCUMENT_PATH",length=500)
+	private String documentPath;
+	public String getDocumentPath() {return documentPath;}
+	public void setDocumentPath(String documentPath) {this.documentPath = documentPath;}
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="SUB_TASK_ASGN_ID",referencedColumnName="ID",insertable=false,updatable=false)
+	private SubTaskAssignment subTaskAssignment;
+	public SubTaskAssignment getSubTaskAssignment() {return subTaskAssignment;}
+	public void setSubTaskAssignment(SubTaskAssignment subTaskAssignment) {
+		this.subTaskAssignment = subTaskAssignment;
+		this.setSubTaskAssignmentId((subTaskAssignmentId == null) ? null : subTaskAssignment.getId());
+	}
+	
+	public SubTaskSubmission(){}
+	public SubTaskSubmission(SubTaskAssignment subTaskAssignment){
+		this.setSubTaskAssignment(subTaskAssignment);
+		subTaskAssignment.getSubmisions().add(this);
+	}
+	
+	
+	
+}

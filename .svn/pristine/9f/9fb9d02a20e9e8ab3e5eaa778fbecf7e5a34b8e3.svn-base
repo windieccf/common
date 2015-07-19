@@ -1,0 +1,41 @@
+package com.nus.adqs.delegate.task;
+
+import java.util.List;
+
+import com.nus.adqs.dataaccess.model.taskmanagement.Task;
+import com.nus.adqs.dataaccess.scalar.form.ManagerDashboardEntity;
+import com.nus.adqs.delegate.BaseDelegate;
+import com.nus.adqs.service.task.TaskService;
+
+public class TaskDelegate extends BaseDelegate<Task>{
+	
+	public Class<TaskService> getServiceClass(){return TaskService.class;}
+	private static TaskDelegate instance;
+	
+	private TaskDelegate(){	/*SINGLETON*/}
+	public static TaskDelegate getInstance(){
+		if( TaskDelegate.instance == null)
+			TaskDelegate.instance = new TaskDelegate();
+		
+		return TaskDelegate.instance;
+	}
+	
+	 
+	/*********************** EXTRAS *********************************/
+	public List<ManagerDashboardEntity> doRetrieveManagmentDashboard() throws Exception{
+		return BaseDelegate.getService(this.getServiceClass()).doRetrieveManagmentDashboard();
+	}
+	
+	public List<ManagerDashboardEntity> doRetrieveManagmentDashboard(Long taskId) throws Exception{
+		return BaseDelegate.getService(this.getServiceClass()).doRetrieveManagmentDashboard(taskId);
+	}
+	
+	public int doCountUserTaskStatusByType( Long taskId, String type){
+		return BaseDelegate.getService(this.getServiceClass()).doCountUserTaskStatusByType(taskId, type);
+	}
+	
+	public ManagerDashboardEntity doRetrieveUserTaskStatusByType( int rowPerPage, int startIndex , Long taskId, String type){
+		return BaseDelegate.getService(this.getServiceClass()).doRetrieveUserTaskStatusByType(rowPerPage, startIndex, taskId, type);
+	}
+
+}

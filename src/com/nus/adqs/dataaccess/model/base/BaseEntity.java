@@ -1,0 +1,136 @@
+package com.nus.adqs.dataaccess.model.base;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+import com.nus.adqs.constant.ConstantStatus;
+import com.nus.adqs.util.DateUtil;
+
+@SuppressWarnings("serial")
+@MappedSuperclass
+public abstract class BaseEntity implements Serializable, Cloneable {
+	public abstract Serializable getPk();
+	
+	@Transient
+	private boolean beanSelected = false;
+	public boolean isBeanSelected() {return beanSelected;}
+	public void setBeanSelected(boolean beanSelected) {this.beanSelected = beanSelected;}
+	public void toggleBeanSelected(){this.setBeanSelected(!this.isBeanSelected());}
+	
+	@Column(name="STATUS",length=1,columnDefinition="CHAR(1)")
+	private String status;
+	public String getStatus() {return status;}
+	public void setStatus(String status) {this.status = status;}
+	public String getStatusAsDisplay(){return (ConstantStatus.ACTIVE.equals(status)) ? "Active" : "Inactive";}
+	public boolean isActive(){return ConstantStatus.ACTIVE.equals(status);}
+	public void toggleStatus() {
+		this.setStatus(isActive()? ConstantStatus.DELETED : ConstantStatus.ACTIVE );
+	}
+
+	//user_account id
+	@Column(name="CREATED_BY_ID")
+	private Long createdById;
+	public Long getCreatedById() {return createdById;}
+	public void setCreatedById(Long createdById) {this.createdById = createdById;}
+
+	@Column(name="CREATED_DATETIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date createdDateTime;
+	public Date getCreatedDateTime() {return createdDateTime;}
+	public void setCreatedDateTime(Date createdDateTime) {this.createdDateTime = createdDateTime;}
+
+	//user_account id
+	@Column(name="MODIFIED_BY_ID")
+	private Long modifiedById;
+	public Long getModifiedById() {return modifiedById;}
+	public void setModifiedById(Long modifiedById) {this.modifiedById = modifiedById;}
+
+	@Column(name="MODIFIED_DATETIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date modifiedDateTime;
+	public Date getModifiedDateTime() {return modifiedDateTime;}
+	public void setModifiedDateTime(Date modifiedDateTime) {this.modifiedDateTime = modifiedDateTime;}
+	
+	
+	@Override
+	public Object clone() {
+	    try {
+            return super.clone();
+        } catch (CloneNotSupportedException e) {            
+            e.printStackTrace();
+            return null;
+        }
+	}
+    
+	
+    @Override
+    public int hashCode() {        
+        return getPk() != null ? getPk().hashCode() : 0;        
+    }
+
+    @Override
+    public boolean equals(Object object) {    	
+        if (object == null || object.getClass() != this.getClass()) return false;  
+        
+        BaseEntity other = (BaseEntity) object;        
+        return (this.getPk() == null) ? other.getPk() == null : this.getPk().equals(other.getPk());        
+    }
+    
+    @Override
+    public String toString() {
+    	try{
+//    		if(this == null) 
+//        		return "null";
+        	
+        	return this.getClass().getName() + "[PK: " + this.getPk() != null ? this.getPk().toString(): "null" + "]";
+    		
+    	}catch(Exception e){/*IGNORED*/}
+    	return "null";
+    	
+    }
+    
+    @PrePersist
+    public void prePersist() {
+    	if(this.getCreatedDateTime() == null) {
+        	this.setCreatedDateTime(DateUtil.getSystemDate());
+    	}
+    	this.setStatus((this.status == null) ? ConstantStatus.ACTIVE : this.getStatus());
+    	this.setModifiedDateTime(DateUtil.getSystemDate());
+    }
+    
+    @PreUpdate
+    public void preUpdate() {
+    	this.setModifiedDateTime(DateUtil.getSystemDate());
+    }
+    
+    public boolean isPkSet(){
+    	if(this.getPk()== null) return false;
+    		
+    	if(this.getPk() instanceof BasePk)
+    		return ((BasePk)(this.getPk())).isSet();
+
+    	return true;
+    }
+
+    public String getPkAsString(){
+    	String temp = "";
+    	
+    	if(this.getPk() instanceof BasePk){
+    		temp =  ((BasePk)(this.getPk())).getAsString();
+    	}else
+    		temp = (this.getPk()== null) ? "" : this.getPk().toString();
+    	
+    	return temp;
+    }
+    
+    public BaseEntity getThis(){return this;}
+    
+}

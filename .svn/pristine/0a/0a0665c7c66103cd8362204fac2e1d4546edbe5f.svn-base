@@ -1,0 +1,94 @@
+package com.nus.adqs.dataaccess.scalar;
+
+import java.math.BigDecimal;
+
+import com.nus.adqs.constant.ConstantContentType;
+import com.nus.adqs.util.StringUtil;
+
+public class SearchResult {
+	
+
+	private String sourceId; // this is the document id
+	public String getSourceId() {return sourceId;}
+	public void setSourceId(String sourceId) {this.sourceId = sourceId;}
+
+	private String pageId; // this is the page id related to the source id
+	public String getPageId() {return pageId;}
+	public void setPageId(String pageId) {this.pageId = pageId;}
+
+	private String contentHeader;
+	public String getContentHeader() {return contentHeader;}
+	public void setContentHeader(String contentHeader) {this.contentHeader = contentHeader;	}
+	
+	private String contentHighlight;
+	public String getContentHighlight() {return contentHighlight;}
+	public void setContentHighlight(String contentHighlight) {this.contentHighlight = contentHighlight;	}
+	public String getContentHighlightDisplay() {return StringUtil.getEmptyIfNull(contentHighlight);}
+	
+	private String sentenceHighLight;
+	public String getSentenceHighLight() {return sentenceHighLight;}
+	public void setSentenceHighLight(String sentenceHighLight) {this.sentenceHighLight = sentenceHighLight;}
+
+	private String contentUrl;
+	public String getContentUrl() {return contentUrl;}
+	public void setContentUrl(String contentUrl) {this.contentUrl = contentUrl;}
+	
+	private String contentType;
+	public String getContentType() {return contentType;}
+	public void setContentType(String contentType) {this.contentType = contentType;}
+	
+	private String contentTypeEncoded;
+	public String getContentTypeEncoded() {return contentTypeEncoded;}
+	public void setContentTypeEncoded(String contentTypeEncoded) {this.contentTypeEncoded = contentTypeEncoded;}
+
+	private String type; // either file system or web
+	public String getType() {return type;}
+	public void setType(String type) {this.type = type;}
+	
+	private BigDecimal score  = new BigDecimal("0");
+	public BigDecimal getScore() {return score;}
+	public void setScore(BigDecimal score) {this.score = score;}
+	public String getScoreAsDisplay(){return score.setScale(5, BigDecimal.ROUND_HALF_UP).toString();}
+
+	private String index;
+	public String getIndex() {return index;}
+	public void setIndex(String index) {this.index = index;}
+	
+	private String keywordHighlight;
+	public String getKeywordHighlight() {return keywordHighlight;}
+	public void setKeywordHighlight(String keywordHighlight) {this.keywordHighlight = keywordHighlight;}
+	
+	public boolean isPdfContent(){return ConstantContentType.PDF.equals(this.getContentType());}
+	public boolean isUrlContent(){return ConstantContentType.URL.equals(this.getContentType());}
+	public boolean isWordDocument(){return (ConstantContentType.OFFICE_WORD_XML.equals(this.getContentType()) || ConstantContentType.OFFICE_WORD.equals(this.getContentType())) ;}
+	public boolean isExcelDocument(){return (ConstantContentType.OFFICE_EXCEL_XML.equals(this.getContentType()) || ConstantContentType.OFFICE_EXCEL.equals(this.getContentType()));}
+	public boolean isPowerPointDocument(){return (ConstantContentType.OFFICE_POWER_POINT.equals(this.getContentType()) || ConstantContentType.OFFICE_POWER_POINT_XML.equals(this.getContentType()));}
+	public boolean isCssDocument(){return ConstantContentType.CSS.equals(this.getContentType());}
+	public boolean isHtmlDocument(){return ( StringUtil.getEmptyIfNull(this.getContentType()).startsWith(ConstantContentType.HTML) ||  ConstantContentType.HTML.equals(this.getContentType()) || ConstantContentType.XHTML.equals(this.getContentType())) ;}
+	public boolean isTextFormat(){return ConstantContentType.TEXT.equals(this.getContentType());}
+	public boolean isRichTextFormat(){return ConstantContentType.RICH_TEXT.equals(this.getContentType());}
+	
+	public String getContentIcon(){
+		if(this.isUrlContent())
+			return "document-icon-url";
+		
+		if(this.isPdfContent())
+			return "document-icon-pdf";
+		
+		if(this.isWordDocument())
+			return "document-icon-word";
+		
+		if(this.isExcelDocument())
+			return "document-icon-excel";
+		
+		if(this.isPowerPointDocument())
+			return "document-icon-outlook";
+		
+		if(this.isCssDocument() || this.isHtmlDocument() )
+			return "document-icon-html";
+		
+		return "document-icon-txt";
+	}
+
+
+}

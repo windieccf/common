@@ -1,0 +1,104 @@
+package com.nus.adqs.dataaccess.model.taskmanagement.template;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.nus.adqs.constant.ConstantScheduler;
+import com.nus.adqs.constant.ConstantSchema;
+import com.nus.adqs.dataaccess.model.base.BaseEntity;
+import com.nus.adqs.util.StringUtil;
+
+
+@SuppressWarnings("serial")
+@Entity
+@Table(name="TASK_TEMPLATE", schema=ConstantSchema.TMS)
+@SequenceGenerator(name="taskTemplateSeq", schema=ConstantSchema.TMS, sequenceName="taskTemplateSeq")
+public class TaskTemplate extends BaseEntity {
+	
+	@Id 
+	@GeneratedValue(strategy=GenerationType.AUTO,generator="taskTemplateSeq")
+	@Column(name="ID")
+	private Long id;
+	public Long getId() {return id;}
+	public void setId(Long id) {this.id = id;}
+	@Override
+	public Serializable getPk() {return this.getId();}
+	
+	@Column(name="NAME")
+	private String name;
+	public String getName() {return name;}
+	public void setName(String name) {this.name = name;}
+	
+	@Column(name="DESCRIPTION", length=1000)
+	private String description;
+	public String getDescription() {return description;}
+	public void setDescription(String description) {this.description = description;}
+	
+	@Column(name="NEXT_RUN_TIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date nextRunTime;
+	public Date getNextRunTime() {return nextRunTime;}
+	public void setNextRunTime(Date nextRunTime) {this.nextRunTime = nextRunTime;}
+	
+	@Column(name="TYPE", length=10)// one time, hourly, daily , weekly, or monthly
+	private String type = ConstantScheduler.TYPE_ONE_TIME;
+	public String getType() {return type;}
+	public void setType(String type) {this.type = type;}
+	
+	@Column(name="RECUR") // used for hourly, or daily or weekly. recur every 3 weeks or 3 days or 3 hours
+	private Long recur = 0L; // 0 for no recurring
+	public Long getRecur() {return recur;}
+	public void setRecur(Long recur) {this.recur = recur;}
+	
+	@Column(name="RUN_ON_MONTHS")// used for monthly
+	private String runOnMonths=""; //  follow java.util.calendar January = 0
+	public String getRunOnMonths() {return runOnMonths;}
+	public void setRunOnMonths(String runOnMonths) {this.runOnMonths = runOnMonths;}
+	public List<String> getRunOnMonthsAsList(){return (StringUtil.isEmpty(this.runOnMonths)) ? new ArrayList<String>() : Arrays.asList(this.runOnMonths.split(","));}
+	
+	@Column(name="RUN_ON_DAYS") // used for weekly or monthly
+	private String runOnDays=""; // follow java.util.calendar Sunday = 1  , Saturday = 7
+	public String getRunOnDays() {return runOnDays;}
+	public void setRunOnDays(String runOnDays) {this.runOnDays = runOnDays;}
+	public List<String> getRunOnDaysAsList(){return   (StringUtil.isEmpty(this.runOnDays)) ? new ArrayList<String>() : Arrays.asList(this.runOnDays.split(","));}
+	
+	@Column(name="RUN_ON_DATES") // used for monthly only, include 1st to 31st or last of the month with prefix LAST
+	private String runOnDates="";
+	public String getRunOnDates() {return runOnDates;}
+	public void setRunOnDates(String runOnDates) {this.runOnDates = runOnDates;}
+	public List<String> getRunOnDatesAsList(){return   (StringUtil.isEmpty(this.runOnDates)) ? new ArrayList<String>() : Arrays.asList(this.runOnDates.split(","));}
+
+	@Column(name="RUN_ON_WEEKS") // used for monthly // not USED
+	private String runOnWeeks; // FIRST|SECOND|THIRD|FOURTH
+	public String getRunOnWeeks() {return runOnWeeks;}
+	public void setRunOnWeeks(String runOnWeeks) {this.runOnWeeks = runOnWeeks;}
+	
+	@OneToMany(mappedBy="taskTemplate",fetch=FetchType.LAZY, cascade=CascadeType.ALL,orphanRemoval=true)
+	private List<SubTaskTemplate> subTaskTemplates = new ArrayList<SubTaskTemplate>();
+	public List<SubTaskTemplate> getSubTaskTemplates() {return subTaskTemplates;}
+	public void setSubTaskTemplates(List<SubTaskTemplate> subTaskTemplates) {this.subTaskTemplates = subTaskTemplates;}
+	public SubTaskTemplate addNewSubTaskTemplate(){return new SubTaskTemplate(this);}
+	
+	public boolean isOneTime(){return ConstantScheduler.TYPE_ONE_TIME.equals(this.type);}
+	public boolean isHourly(){return ConstantScheduler.TYPE_HOURLY.equals(this.type);}
+	public boolean isDaily(){return ConstantScheduler.TYPE_DAILY.equals(this.type);}
+	public boolean isWeekly(){return ConstantScheduler.TYPE_WEEKLY.equals(this.type);}
+	public boolean isMonthly(){return ConstantScheduler.TYPE_MONTHLY.equals(this.type);}
+
+}

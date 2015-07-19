@@ -1,0 +1,113 @@
+package com.nus.adqs.dataaccess.model.taskmanagement;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+import com.nus.adqs.constant.ConstantSchema;
+import com.nus.adqs.constant.ConstantStatus;
+import com.nus.adqs.dataaccess.model.base.BaseEntity;
+import com.nus.adqs.dataaccess.model.security.user.UserAccount;
+
+@SuppressWarnings("serial")
+@Entity
+@Table(name="SUB_TASK_ASGN")
+@SequenceGenerator(name="subTaskAsgnSeq", schema=ConstantSchema.TMS, sequenceName="subTaskAsgnSeq")
+public class SubTaskAssignment extends BaseEntity{
+	
+	@Id 
+	@GeneratedValue(strategy=GenerationType.AUTO,generator="subTaskSeq")
+	@Column(name="ID")
+	private Long id;
+	public Long getId() {return id;}
+	public void setId(Long id) {this.id = id;}
+	@Override
+	public Serializable getPk() {return this.getId();}
+	
+	@Column(name="SUB_TASK_ID")
+	private Long subTaskId;
+	public Long getSubTaskId() {return subTaskId;}
+	public void setSubTaskId(Long subTaskId) {this.subTaskId = subTaskId;}
+	
+	@Column(name="USER_ACCOUNT_ID")
+	private Long userAccountId;
+	public Long getUserAccountId() {return userAccountId;}
+	public void setUserAccountId(Long userAccountId) {this.userAccountId = userAccountId;}
+
+	@Column(name="STATUS_01", length=1, columnDefinition="CHAR(1)")
+	private String status01 = ConstantStatus.TMS_TASK_USER_PENDING;
+	public String getStatus01() {return status01;}
+	public void setStatus01(String status01) {this.status01 = status01;}
+	
+	@Column(name="PENDING_DATETIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date pendingDateTime;
+	public Date getPendingDateTime() {return pendingDateTime;}
+	public void setPendingDateTime(Date pendingDateTime) {this.pendingDateTime = pendingDateTime;}
+	
+	@Column(name="INPROGRESS_DATETIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date inProgressDateTime;
+	public Date getInProgressDateTime() {return inProgressDateTime;}
+	public void setInProgressDateTime(Date inProgressDateTime) {this.inProgressDateTime = inProgressDateTime;}
+	
+	@Column(name="SUBMITTED_DATETIME")
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date submittedDateTime;
+	public Date getSubmittedDateTime() {return submittedDateTime;}
+	public void setSubmittedDateTime(Date submittedDateTime) {this.submittedDateTime = submittedDateTime;}
+
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="SUB_TASK_ID",referencedColumnName="ID",insertable=false,updatable=false)
+	private SubTask subTask;
+	public SubTask getSubTask() {return subTask;}
+	public void setSubTask(SubTask subTask) {
+		this.subTask = subTask;
+		this.setSubTaskId((this.subTask == null) ? null : this.subTask.getId());
+	}
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="USER_ACCOUNT_ID",referencedColumnName="ID",insertable=false,updatable=false)
+	private UserAccount userAccount;
+	public UserAccount getUserAccount() {return userAccount;}
+	public void setUserAccount(UserAccount userAccount) {
+		this.userAccount = userAccount;
+		this.setUserAccountId((this.userAccount == null) ? null : this.userAccount.getId());
+	}
+	
+	@OneToMany(mappedBy="subTaskAssignment",fetch=FetchType.LAZY, cascade=CascadeType.ALL,orphanRemoval=true)
+	private List<SubTaskSubmission> submisions = new ArrayList<SubTaskSubmission>();
+	public List<SubTaskSubmission> getSubmisions() {return submisions;}
+	public void setSubmisions(List<SubTaskSubmission> submisions) {this.submisions = submisions;}
+	public SubTaskSubmission addNewSubmission(){return new SubTaskSubmission(this);}
+	
+	
+	public SubTaskAssignment(){}
+	public SubTaskAssignment(SubTask subTask){
+		this(subTask, null);
+	}
+	
+	public SubTaskAssignment(SubTask subTask, UserAccount userAccount){
+		this.setSubTask(subTask);
+		this.setUserAccount(userAccount);
+		this.subTask.getAssignments().add(this);
+	}
+	
+	
+}

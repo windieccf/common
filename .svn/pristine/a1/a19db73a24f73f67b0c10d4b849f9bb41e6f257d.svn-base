@@ -1,0 +1,75 @@
+package com.nus.adqs.dataaccess.model.taskmanagement;
+
+import java.io.Serializable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+import com.nus.adqs.constant.ConstantSchema;
+import com.nus.adqs.dataaccess.model.base.BaseEntity;
+
+
+@SuppressWarnings("serial")
+@Entity
+@Table(name="SUB_TASK_DOC")
+@SequenceGenerator(name="subTaskDocSeq", schema=ConstantSchema.TMS, sequenceName="subTaskDocSeq")
+public class SubTaskDocument extends BaseEntity{
+	
+	@Id 
+	@GeneratedValue(strategy=GenerationType.AUTO,generator="subTaskTemplateSeq")
+	@Column(name="ID")
+	private Long id;
+	public Long getId() {return id;}
+	public void setId(Long id) {this.id = id;}
+	@Override
+	public Serializable getPk() {return this.getId();}
+	
+	@Column(name="NAME")
+	private String name;
+	public String getName() {return name;}
+	public void setName(String name) {this.name = name;}
+	
+	@Column(name="DESCRIPTION", length=1000)
+	private String description;
+	public String getDescription() {return description;}
+	public void setDescription(String description) {this.description = description;}
+
+	@Column(name="TEMPLATE_PATH",length=500)
+	private String templatePath;
+	public String getTemplatePath() {return templatePath;}
+	public void setTemplatePath(String templatePath) {this.templatePath = templatePath;}
+	
+	@Column(name="SUB_TASK_ID")
+	private Long subTaskId;
+	public Long getSubTaskId() {return subTaskId;}
+	public void setSubTaskId(Long subTaskId) {this.subTaskId = subTaskId;}
+	
+	@ManyToOne(fetch=FetchType.LAZY)
+	@JoinColumn(name="SUB_TASK_ID",referencedColumnName="ID",insertable=false,updatable=false)
+	private SubTask subTask;
+	public SubTask getSubTask() {return subTask;}
+	public void setSubTask(SubTask subTask) {
+		this.subTask = subTask;
+		this.setSubTaskId((this.subTask == null) ? null : this.subTask.getId());
+	}
+	
+	
+	public SubTaskDocument(){}
+	public SubTaskDocument(SubTask subTask){
+		this.setSubTask(subTask);
+		this.subTask.getDocuments().add(this);
+	}
+	
+	
+	
+	
+
+}

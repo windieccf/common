@@ -1,0 +1,233 @@
+package com.nus.adqs.service.user.impl;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.persistence.Query;
+
+import com.nus.adqs.base.form.BaseForm;
+import com.nus.adqs.constant.ConstantStatus;
+import com.nus.adqs.dataaccess.model.master.RoleType;
+import com.nus.adqs.dataaccess.model.security.user.UserAccount;
+import com.nus.adqs.dataaccess.model.security.user.UserInfo;
+import com.nus.adqs.dataaccess.model.security.user.UserRole;
+import com.nus.adqs.dataaccess.persistence.EmLocator;
+import com.nus.adqs.dataaccess.scalar.form.LabelValue;
+import com.nus.adqs.exception.ValidationException;
+import com.nus.adqs.service.impl.BaseServiceImpl;
+import com.nus.adqs.service.user.UserService;
+import com.nus.adqs.util.BeanUtil;
+import com.nus.adqs.util.StringUtil;
+
+public class UserServiceImpl extends BaseServiceImpl<UserInfo> implements UserService{
+
+	
+	@SuppressWarnings("unchecked")
+	public List<UserInfo> paginate(int rowPerPage, int startIndex, List<LabelValue> filters, List<LabelValue> sortOrder) {
+		// TODO Auto-generated method stub
+		
+		StringBuffer mySql = new StringBuffer()
+			.append("SELECT e FROM "+UserInfo.class.getSimpleName()+" as e INNER JOIN  e.userAccount as a ");
+
+
+		String condition = super.extractFilters(filters);
+		List<Object> parameters = super.extractParameters(filters);
+		
+		if(!StringUtil.isEmpty(condition)){
+			condition = StringUtil.reIndexJpaParameter(condition);
+			mySql.append(" WHERE " +condition);
+		}
+		
+		mySql.append(" " + this.generateOrderQuery(sortOrder));
+		Query jpaQuery = EmLocator.getEm().createQuery(mySql.toString());
+		
+		for (int i = 0; i < parameters.size(); i++) {
+			jpaQuery.setParameter(i+1, parameters.get(i));
+		}
+		
+		jpaQuery.setMaxResults( rowPerPage);
+		jpaQuery.setFirstResult(startIndex);
+		
+		return jpaQuery.getResultList();
+	}
+	
+	@Override
+	public Long paginateCount(List<LabelValue> filters) {
+		
+		StringBuffer mySql = new StringBuffer()
+					.append("SELECT COUNT(e) FROM "+UserInfo.class.getSimpleName()+" as e INNER JOIN  e.userAccount as a ");
+		
+		String condition = this.extractFilters(filters);
+		List<Object> parameters = this.extractParameters(filters);
+		
+		if(!StringUtil.isEmpty(condition)){
+			condition = StringUtil.reIndexJpaParameter(condition);
+			mySql.append(" WHERE " +condition);
+		}
+			
+		Query jpaQuery = EmLocator.getEm().createQuery(mySql.toString());
+		
+		for (int i = 0; i < parameters.size(); i++) {
+			jpaQuery.setParameter(i+1, parameters.get(i));
+		}
+		
+		return (Long) jpaQuery.getSingleResult();
+	}
+	
+	@Override
+	public UserInfo save(BaseForm<UserInfo> form) throws ValidationException, Exception{
+		this.validate(form);
+		
+		UserInfo formUserInfo = form.getSelectedEntity();
+		UserAccount formUserAccount = formUserInfo.getUserAccount();
+		
+		UserInfo userInfo = new UserInfo();
+		UserAccount userAccount = new UserAccount();
+		
+		if(formUserInfo.isPkSet()){
+			userInfo = super.getById(formUserInfo.getPk());
+			userAccount = super.getById(formUserAccount.getPk(), UserAccount.class);
+		}
+		
+		List<String> excludeProperties = new ArrayList<String>();
+		excludeProperties.addAll(Arrays.asList(BaseServiceImpl.RESTRICTED_COPY));
+		excludeProperties.add("userAccount");
+		BeanUtil.copyProperties(userInfo, formUserInfo, excludeProperties.toArray(new String[0]) );
+		
+		excludeProperties = new ArrayList<String>();
+		excludeProperties.addAll(Arrays.asList(BaseServiceImpl.RESTRICTED_COPY));
+		excludeProperties.add("userInfo");
+		excludeProperties.add("userRoles");
+		BeanUtil.copyProperties(userAccount, formUserAccount, excludeProperties.toArray(new String[0]) );
+		
+		
+		EmLocator.getEm().persist(userAccount);
+		
+		userInfo.setUserAccount(userAccount);
+		EmLocator.getEm().persist(userInfo);
+		
+		// start massage the role of the user
+		//perform matching on the roles
+		List<Long> selectedRoles = form.getParameterAsList(Long.class, "selectedRoles");
+		
+		List<UserRole> removeItems = new ArrayList<UserRole>();
+		for(UserRole userRole : userAccount.getUserRoles()){
+			if(userRole.getRoleId() == null )
+				removeItems.add(userRole);
+			else if(selectedRoles.contains(userRole.getRoleId()))
+				selectedRoles.remove(userRole.getRoleId());
+			else
+				removeItems.add(userRole);
+		}
+		
+		//start removal
+		for(UserRole item : removeItems){
+			userAccount.removeRole(item);
+		}
+		
+		for(Long roleId : selectedRoles){
+			userAccount.addNewRole(super.getById(roleId, RoleType.class));
+		}
+		
+		EmLocator.getEm().persist(userAccount);
+		EmLocator.getEm().flush();
+		return userInfo;
+	}
+
+
+	@Override
+	public void validate(BaseForm<UserInfo> form) throws ValidationException, Exception {
+		// TODO Auto-generated method stub
+		List<String> errors = new ArrayList<String>();
+		
+		UserInfo userInfo = form.getSelectedEntity();
+		UserAccount userAccount = userInfo.getUserAccount();
+		
+		if(StringUtil.isEmpty(userAccount.getUsername()))
+			errors.add("Please fill in username");
+		
+		if(StringUtil.isEmpty(userAccount.getPassword()))
+			errors.add("Please fill in password");
+			
+		if(StringUtil.isEmpty(userInfo.getFullName()))
+			errors.add("Please fill in full name");
+		
+		if(StringUtil.isEmpty(userInfo.getEmail()))
+			errors.add("Please fill in Email Address");
+		
+		if(form.getParameterAsList(Long.class, "selectedRoles").isEmpty())
+			errors.add("Please fill role");
+		
+		if(!errors.isEmpty())
+			throw new ValidationException(errors);
+		
+	}
+
+	@Override
+	public UserInfo delete(BaseForm<UserInfo> form) throws ValidationException, Exception {
+		UserInfo entity = this.getById(form.getSelectedEntity().getPk());
+		if(entity == null)
+			throw new ValidationException("Record with identifier ["+form.getSelectedEntity().getPk()+"] does not exist in the database");
+		
+		entity.setStatus(ConstantStatus.DELETED);
+		
+		UserAccount userAccount = entity.getUserAccount();
+		userAccount.setStatus(ConstantStatus.DELETED);
+		EmLocator.getEm().persist(entity);
+		EmLocator.getEm().persist(userAccount);
+		EmLocator.getEm().flush();
+		return entity;
+	}
+	
+	public UserInfo reActivate(BaseForm<UserInfo> form) throws ValidationException, Exception {
+		UserInfo entity = this.getById(form.getSelectedEntity().getPk());
+		if(entity == null)
+			throw new ValidationException("Record with identifier ["+form.getSelectedEntity().getPk()+"] does not exist in the database");
+		
+		UserAccount userAccount = entity.getUserAccount();
+		entity.setStatus(ConstantStatus.ACTIVE);
+		userAccount.setStatus(ConstantStatus.ACTIVE);
+		EmLocator.getEm().persist(entity);
+		EmLocator.getEm().persist(userAccount);
+		EmLocator.getEm().flush();
+		return entity;
+	}
+	
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public UserAccount getUserAccountByUserName(String username) {
+		List<UserAccount> userAccounts = EmLocator.getEm().createNamedQuery(UserAccount.LIST_BY_USER_NAME)
+												.setParameter("username", username)
+												.getResultList();
+		
+		return (userAccounts.isEmpty()) ? null : userAccounts.get(0);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public UserAccount getUserAccountByEmail(String email) {
+		List<UserAccount> userAccounts = EmLocator.getEm().createNamedQuery(UserAccount.LIST_BY_EMAIL)
+												.setParameter("email", email)
+												.getResultList();
+		
+		return (userAccounts.isEmpty()) ? null : userAccounts.get(0);
+	}
+	
+	public UserAccount authenticateUser(String username, String password) throws ValidationException, Exception {
+		if(StringUtil.isEmpty(username) || StringUtil.isEmpty(password))
+			throw new ValidationException("Please fill in username and password");
+		
+		UserAccount userAccount = this.getUserAccountByUserName(username);
+		if(userAccount == null)
+			throw new ValidationException("Invalid username or password");
+		
+		if(!userAccount.getPassword().equals(password))
+			throw new ValidationException("Invalid username or password");
+		
+		return userAccount;
+	}
+
+
+}

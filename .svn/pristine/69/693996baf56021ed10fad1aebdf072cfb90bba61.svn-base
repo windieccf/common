@@ -1,0 +1,7 @@
+package com.nus.adqs.constant;
+
+public class ConstantContentType {
+	
+	public static final String PDF = "application/pdf";
+
+}

@@ -1,0 +1,255 @@
+package com.nus.adqs.service.task.impl;
+
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.Query;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.nus.adqs.base.form.BaseForm;
+import com.nus.adqs.constant.ConstantStatus;
+import com.nus.adqs.dataaccess.model.taskmanagement.Task;
+import com.nus.adqs.dataaccess.persistence.EmLocator;
+import com.nus.adqs.dataaccess.scalar.form.ManagerDashboardEntity;
+import com.nus.adqs.dataaccess.scalar.form.UserTaskStatusEntity;
+import com.nus.adqs.exception.ValidationException;
+import com.nus.adqs.service.impl.BaseServiceImpl;
+import com.nus.adqs.service.task.TaskService;
+import com.nus.adqs.util.BeanUtil;
+
+public class TaskServiceImpl extends BaseServiceImpl<Task> implements TaskService{
+
+	private static String LATEST_SUBMISSION_QUERY;
+	static{
+		LATEST_SUBMISSION_QUERY = new StringBuffer()
+									.append("SELECT * FROM ( ")
+									.append("	SELECT TS.TASK_ID, TA.ID , I.FULL_NAME, TA.SUBMITTED_DATETIME ")
+									.append("	FROM TMS.SUB_TASK_ASGN TA ") 
+									.append("	INNER JOIN COMMON.USER_INFO I ON I.USER_ACCOUNT_ID = TA.USER_ACCOUNT_ID  ") 
+									.append("	INNER JOIN TMS.SUB_TASK TS ON TS.ID = TA.SUB_TASK_ID ") 
+									.append("	WHERE TA.STATUS_01 = ''"+ConstantStatus.TMS_TASK_USER_SUBMITTED+"'' " ) 
+									.append("	AND TS.TASK_ID = {0} ") 
+									.append("	ORDER BY TA.SUBMITTED_DATETIME ASC ,  I.FULL_NAME ASC  LIMIT 3 ") 
+									.append(" ) AS X ")
+									.toString();
+		
+		
+		
+		
+		
+	}
+	
+	@Override
+	public void validate(BaseForm<Task> form) throws ValidationException,Exception {
+		// Kenny or who ever, please fill in this portion
+	}
+
+	
+	
+	
+	/***************************************** FOR STATISTIC PURPOSE *********************************************************/
+	
+	@Override
+	public List<ManagerDashboardEntity> doRetrieveManagmentDashboard(){
+		return this.doRetrieveManagmentDashboard(null);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public int doCountUserTaskStatusByType(Long taskId, String type){
+		try{
+			
+			StringBuffer mySql = new StringBuffer()
+			.append("	SELECT COUNT(1) ")
+			.append("		FROM TMS.SUB_TASK_ASGN A ")
+			.append("		INNER JOIN TMS.SUB_TASK S ON S.ID = A.SUB_TASK_ID ")
+			.append("		INNER JOIN TMS.TASK T ON T.ID = S.TASK_ID ")
+			.append("		INNER JOIN COMMON.USER_ACCOUNT U ON U.ID = A.USER_ACCOUNT_ID ")
+			.append("	WHERE 1=1 ")
+			.append("	AND T.ID =:taskId") 
+			.append("	AND A.STATUS_01=:status01");  
+			
+			Query query = EmLocator.getEm().createNativeQuery(mySql.toString());
+			query.setParameter("taskId", taskId);
+			query.setParameter("status01", type);
+			query.setMaxResults(1);
+			
+			List<Object> results = query.getResultList();
+			if(!results.isEmpty())
+				return BeanUtil.getAsInteger(results.get(0));
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return 0;
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public ManagerDashboardEntity doRetrieveUserTaskStatusByType( int rowPerPage, int startIndex , Long taskId, String type){
+		ManagerDashboardEntity entity = new ManagerDashboardEntity();
+		try{
+			
+			StringBuffer mySql = new StringBuffer()
+								.append("	SELECT T.NAME AS TASK_NAME , S.NAME AS SUB_TASK_NAME , U.USERNAME, A.SUBMITTED_DATETIME, A.INPROGRESS_DATETIME, A.PENDING_DATETIME, A.STATUS_01 ")
+								.append("		FROM TMS.SUB_TASK_ASGN A ")
+								.append("		INNER JOIN TMS.SUB_TASK S ON S.ID = A.SUB_TASK_ID ")
+								.append("		INNER JOIN TMS.TASK T ON T.ID = S.TASK_ID ")
+								.append("		INNER JOIN COMMON.USER_ACCOUNT U ON U.ID = A.USER_ACCOUNT_ID ")
+								.append("	WHERE 1=1 ")
+								.append("	AND T.ID =:taskId") 
+								.append("	AND A.STATUS_01=:status01");    
+			//
+			if(ConstantStatus.TMS_TASK_USER_PENDING.equals(type))
+				mySql.append(" ORDER BY S.START_DATETIME ASC ");
+			else if(ConstantStatus.TMS_TASK_USER_INPROGRESS.equals(type))
+				mySql.append(" ORDER BY A.INPROGRESS_DATETIME DESC ");
+			else if(ConstantStatus.TMS_TASK_USER_SUBMITTED.equals(type))
+				mySql.append(" ORDER BY A.SUBMITTED_DATETIME DESC ");
+			else if(ConstantStatus.TMS_TASK_USER_REJECTED.equals(type))
+				mySql.append(" ORDER BY S.START_DATETIME ASC ");
+			
+			
+			Query query = EmLocator.getEm().createNativeQuery(mySql.toString());
+			query.setParameter("taskId", taskId);
+			query.setParameter("status01", type);
+			query.setMaxResults(rowPerPage);
+			query.setFirstResult(startIndex);
+			
+			
+			List<Object> results = query.getResultList();
+			for(Object obj : results){
+				Object[] objs = (Object[]) obj;
+			
+				int i = 0;
+				UserTaskStatusEntity subEntity = entity.addNewUserStatus();
+				entity.setTaskName(BeanUtil.getAsString(objs[i++]));
+				subEntity.setSubTaskName(BeanUtil.getAsString(objs[i++]));
+				subEntity.setUserName(BeanUtil.getAsString(objs[i++]));
+				subEntity.setSubmittedDateTime((Date)objs[i++]);
+				subEntity.setInprogressDateTime((Date)objs[i++]);
+				subEntity.setPendingDateTime((Date)objs[i++]);
+			}
+			
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		
+		
+		return entity;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<ManagerDashboardEntity> doRetrieveManagmentDashboard(Long taskId){
+		List<ManagerDashboardEntity> entities = new ArrayList<ManagerDashboardEntity>();
+		
+		
+		try{
+			// 1. ensure parameter is complete
+			Map<String,Object> parameterMap = new HashMap<String,Object>();
+			List<String> conditions = new ArrayList<String>();
+			if(taskId!=null){
+				conditions.add(" T.ID =:taskId ");
+				parameterMap.put("taskId", taskId);
+			}
+				
+			// generate the SQL for main dashboard
+			StringBuffer taskSql = new StringBuffer()
+						.append(" SELECT X.ID, X.NAME, X.TASK_START_TIME, X.TASK_END_TIME, X.INDIVIDUAL_STATUS AS STATUS, SUM(X.COUNT) AS COUNT ")
+						.append("	FROM ( ")
+						.append("		SELECT T.ID , T.NAME, T.START_DATETIME AS TASK_START_TIME , T.END_DATETIME AS TASK_END_TIME,  ") 
+						.append("			TS.STATUS_01 AS SUB_TASK_STATUS, TS.START_DATETIME, TS.END_DATETIME, ") 
+						.append("			(CASE WHEN TS.STATUS_01 = '"+ConstantStatus.TMS_TASK_CONSOLIDATED+"' THEN '"+ConstantStatus.TMS_TASK_CONSOLIDATED+"' ELSE TA.STATUS_01 END ) AS INDIVIDUAL_STATUS,  ")
+						.append("			COUNT(1) AS COUNT ")
+						.append("		FROM TMS.SUB_TASK_ASGN TA ")
+						.append("		INNER JOIN TMS.SUB_TASK TS ON TA.SUB_TASK_ID = TS.ID ")
+						.append("		INNER JOIN TMS.TASK T ON T.ID = TS.TASK_ID ") 
+						.append("		WHERE 1=1 ") 
+						.append( ((conditions.isEmpty())? "" : " AND " + StringUtils.join(conditions, " AND "))  )
+						.append("		GROUP BY T.ID, T.NAME, T.START_DATETIME, T.END_DATETIME,  ") 
+						.append("		TS.STATUS_01, TS.START_DATETIME, TS.END_DATETIME, TA.STATUS_01 ") 
+						.append("	) AS X ")
+						.append("	GROUP BY X.ID, X.NAME, X.TASK_START_TIME, X.TASK_END_TIME, X.INDIVIDUAL_STATUS ") 
+						.append("	ORDER BY X.TASK_START_TIME ASC, X.NAME ASC ") 
+						.append("");
+			
+			// 3. perform call and retrieve result from database
+			Query query = EmLocator.getEm().createNativeQuery(taskSql.toString());
+			if(!parameterMap.isEmpty()){
+				for(String key : parameterMap.keySet()){
+					query.setParameter(key, parameterMap.get(key));
+				}
+			}
+			
+			
+			
+			List<Object> results = query.getResultList();
+			if(!results.isEmpty()){
+				
+				// 4. store the return result to bean
+				List<String> lastSubmissionQuery = new ArrayList<String>();
+				Map<Long,ManagerDashboardEntity> managementMap =  new LinkedHashMap<Long,ManagerDashboardEntity>();
+				
+				ManagerDashboardEntity entity = null;
+				for(Object obj : results){
+					Object[] objs = (Object[]) obj;
+					int i = 0;
+					Long id = BeanUtil.getAsLong(objs[i++]);
+					
+					// 4.1 ensure query for individual submission is in place
+					if(entity == null){
+						entity = new ManagerDashboardEntity();
+						lastSubmissionQuery.add(MessageFormat.format(LATEST_SUBMISSION_QUERY, id));
+					}else if(!entity.getTaskId().equals(id)){
+						managementMap.put(entity.getTaskId(), entity);
+						entity = new ManagerDashboardEntity();
+						lastSubmissionQuery.add(MessageFormat.format(LATEST_SUBMISSION_QUERY, id));
+					}
+					
+					entity.setTaskId(id);
+					entity.setTaskName(BeanUtil.getAsString(objs[i++]));
+					entity.setStartDate((Date) objs[i++] );
+					entity.setEndDate((Date) objs[i++] );
+					entity.setCount(BeanUtil.getAsString(objs[i++]), BeanUtil.getAsInteger(objs[i++]));
+		 		}
+				
+				managementMap.put(entity.getTaskId(), entity);
+				
+				// 4.2 perform call to the individual submission query
+				String submissionQuery = StringUtils.join(lastSubmissionQuery, " UNION ALL ");
+				query = EmLocator.getEm().createNativeQuery(submissionQuery);
+				List<Object> submissionResult = query.getResultList();
+				
+				// 4.3 massage the date
+				for(Object obj : submissionResult){
+					Object[] objs = (Object[]) obj;
+					if(!managementMap.containsKey(BeanUtil.getAsLong(objs[0])))
+						continue;
+					
+					entity = managementMap.get(BeanUtil.getAsLong(objs[0])); // retrieve based on task ID
+					entity.addNewSubmission(BeanUtil.getAsLong(objs[1]), BeanUtil.getAsString(objs[2]), (Date)objs[3]);
+				}
+				
+				// 4.4 merge the result 
+				entities.addAll(managementMap.values());
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		
+		
+		return entities;
+	}
+	
+	
+}

@@ -1,0 +1,15 @@
+package com.nus.adqs.delegate.task;
+
+import com.nus.adqs.dataaccess.model.taskmanagement.Task;
+import com.nus.adqs.delegate.BaseDelegate;
+import com.nus.adqs.service.BaseService;
+
+public class TaskDelegate extends BaseDelegate<Task>{
+
+	@Override
+	public Class<? extends BaseService<Task>> getServiceClass() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

@@ -1,0 +1,45 @@
+package com.nus.adqs.service.task;
+
+import java.util.List;
+import java.util.Map;
+
+import com.nus.adqs.annotation.ServiceRegistry;
+import com.nus.adqs.dataaccess.model.taskmanagement.SubTask;
+import com.nus.adqs.dataaccess.model.taskmanagement.Task;
+import com.nus.adqs.dataaccess.scalar.form.FilePartEntity;
+import com.nus.adqs.dataaccess.scalar.form.ManagerDashboardEntity;
+import com.nus.adqs.dataaccess.scalar.form.UserDashboardEntity;
+import com.nus.adqs.dataaccess.scalar.form.UserSubTaskEntity;
+import com.nus.adqs.dataaccess.scalar.result.TaskDueEntity;
+import com.nus.adqs.service.BaseService;
+
+@ServiceRegistry(className="com.nus.adqs.service.task.impl.TaskServiceImpl")
+public interface TaskService extends BaseService<Task>{
+	
+	public List<ManagerDashboardEntity> doRetrieveManagmentDashboard(Long userId);
+	
+	public List<ManagerDashboardEntity> doRetrieveManagmentDashboard(Long userId, Long taskId);
+	
+	public int doCountUserTaskStatusByType( Long taskId, String type);
+	
+	public ManagerDashboardEntity doRetrieveUserTaskStatusByType( int rowPerPage, int startIndex , Long taskId, String type);
+	
+	public void saveTask(Task task, Map<String, String[]> parameters, List<FilePartEntity> files) throws Exception;
+	
+	public List<UserDashboardEntity> doRetrieveUserDashboardByType(int rowPerPage, int startIndex, String type, Long userId);
+
+	public int doCountUserTaskStatusByUserIdType(Long userId, String type);
+	
+	public List<UserDashboardEntity> doRetrieveUserDashboard(Long userId);
+	
+	public UserSubTaskEntity doRetrieveUserSubTask(Long subtaskAssignId);
+
+	public void doSaveUserSubTask(UserSubTaskEntity userSubtaskEntity,FilePartEntity file) throws Exception;
+	
+	public UserSubTaskEntity doRetrieveLastUploadFile(Long subtaskAssignId);
+
+	public void doLaunchSubTask(Task task, SubTask subTask);
+
+	public List<TaskDueEntity> doRetrieveDueSubTask(long interval);
+
+}

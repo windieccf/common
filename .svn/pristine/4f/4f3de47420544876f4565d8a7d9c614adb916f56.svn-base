@@ -1,0 +1,22 @@
+package com.nus.adqs.delegate.task;
+
+import com.nus.adqs.dataaccess.model.taskmanagement.Task;
+import com.nus.adqs.delegate.BaseDelegate;
+import com.nus.adqs.service.task.TaskService;
+
+public class TaskDelegate extends BaseDelegate<Task>{
+	
+	public Class<TaskService> getServiceClass(){return TaskService.class;}
+	private static TaskDelegate instance;
+	
+	private TaskDelegate(){	/*SINGLETON*/}
+	public static TaskDelegate getInstance(){
+		if( TaskDelegate.instance == null)
+			TaskDelegate.instance = new TaskDelegate();
+		
+		return TaskDelegate.instance;
+	}
+
+
+
+}

@@ -1,0 +1,489 @@
+package com.nus.adqs.util;
+
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
+
+import com.nus.adqs.constant.ConstantOperator;
+import com.nus.adqs.enumeration.EnumUnicode;
+import com.nus.adqs.enumeration.QueryConjuctionEnum;
+
+public class StringUtil {
+	
+
+	public static final String ALPHA_NUMERIC_PATTERN = "^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$";
+	public static final String TEXT_PATTERN = "^[a-zA-Z]+$";
+	public static final String NUMERIC_PATTERN = "^[0-9]+$";
+	public static final String QUEUE_FORMAT_PATTERN = "0000000000";
+	//public static final String BASE64_HEADER = "data:image/png;base64,";
+	public static final DecimalFormat QUEUE_DECIMAL_FORMAT = new DecimalFormat(StringUtil.QUEUE_FORMAT_PATTERN);
+	
+	
+	private static String DOCTYPE_ENTITY;
+	
+	public static List<String> HTML_CSS_FONT_LIST = new ArrayList<String>();
+	static{
+		HTML_CSS_FONT_LIST.add("s");
+		HTML_CSS_FONT_LIST.add("S");
+		HTML_CSS_FONT_LIST.add("m");
+		HTML_CSS_FONT_LIST.add("M");
+		HTML_CSS_FONT_LIST.add("l");
+		HTML_CSS_FONT_LIST.add("L");
+		HTML_CSS_FONT_LIST.add("x");
+		HTML_CSS_FONT_LIST.add("X");
+		
+		DOCTYPE_ENTITY = new StringBuffer()
+			.append("<!DOCTYPE stylesheet [ ")
+			.append("  <!ENTITY nbsp \" \">  ")
+			.append("  <!ENTITY amp \"&#38;\">  ")
+			.append("  <!ENTITY quot \"&#34;\">  ")
+			.append("  <!ENTITY cent \"&#162;\">  ")
+			.append("  <!ENTITY euro \"&#8364;\">  ")
+			.append("  <!ENTITY pound \"&#163;\">  ")
+			.append("  <!ENTITY bull \"&#8226;\">  ")
+			.append("  <!ENTITY prime \"&#8242;\">  ")
+			.append("  <!ENTITY Prime \"&#8243;\">  ")
+			.append("  <!ENTITY lsaquo \"&#8249;\">  ")
+			.append("  <!ENTITY rsaquo \"&#8250;\">  ")
+			.append("  <!ENTITY laquo \"&#171;\">  ")
+			.append("  <!ENTITY raquo \"&#187;\">  ")
+			.append("  <!ENTITY lsquo \"&#8216;\">  ")
+			.append("  <!ENTITY rsquo \"&#8217;\">  ")
+			.append("  <!ENTITY ldquo \"&#8220;\">  ")
+			.append("  <!ENTITY rdquo \"&#8221;\">  ")
+			.append("  <!ENTITY sbquo \"&#8218;\">  ")
+			.append("  <!ENTITY bdquo \"&#8222;\">  ")
+			.append("  <!ENTITY lt \"&#60;\">  ")
+			.append("  <!ENTITY rt \"&#62;\">  ")
+			.append("  <!ENTITY le \"&#8804;\">  ")
+			.append("  <!ENTITY ge \"&#8805;\">  ")
+			.append("  <!ENTITY ndash \"&#8211;\">  ")
+			.append("  <!ENTITY mdash \"&#8212;\">  ")
+			.append("  <!ENTITY plusmn \"&#177;\">  ")
+			.append("]>")
+		.toString();
+		
+		
+	}
+	
+	public static final String EMPTY_DOCUMENT_PATTERN = "iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAArl0lEQVR42u2dCZjV1N3w/zPDKjvCsO/aWrdqUft+re0rLYh761e1+roUrNqqrYqWYlFRHj/r9qhYRVq17ShFRVGgblV4dSpYEQVZBJEBhm1m2AaGWYDZv3NCcjk3c9bc5CaZ/H/PE5Kc5GZyQ/6/8z8nyU0OIAiSWHLC3gEEQcIDBYDEnjFjxvx0wYIF88LejzgSCwGUl5f/lIx+QoahZDiFDN3D3ickMlRcfvnl9HwYTyRQEPbOxI1IC4AE/llk9Hc4HPgIwoUIwJlECRgSWQGQ4H+CjG4Lez+Q6MMIgIISMCCSAsDgR0xwCYCCEtAkcgKw0/4Pw94PJPrk5uZCU1MTTwCUU4kEVoS9j1EnigIoBkmbn/6nO0NOTuR2H8kyDQ0NcOmll/IWVZBhFEpATqQiyO7tnyta3rZtWyvwEYTlZz/7GTQ3N1uDC5SAgqgJgPb4j2uxk6Smb9euXdi7h0SUyy67zAp+2hzgiAAlICFqAqBt/7Pc5e3bt0+bb2xstP6zKc4YSRZspXDFFVekBOBIwHVeoAQERE0ALXI4Nu2n/6n19fVh7yYSERwJXHXVVVwBuESAEuAQaQGwlqedPbTmRxAWeo5cf/313MDniAAl4CLSAmjTpg3k5eVh8CNSbrzxRi0B2NMoAYZIC4DW/vQ/D9N+RMbNN9+c6vyTBD47tiTw/vvvJ14CkRYA7fyrq6vjXd5BkBS33HJLi6sAbOALRFBBhlHvvfdeoiUQaQHQDkCs/REVEyZMaFHLq5oDbCbw7rvvJlYCkRYA7QOg7X8EkXHHHXcIg19DBFYm8M477yRSApEWgHOvN4LImDhxYirYeYGu0SywJPD2228nTgKRFgC9xIPtf0TFpEmT0gLdRATu5sCbb76ZKAlEWgAIosPkyZNbBLmsKSBrDpDNjZo/f35iJIACQGLP3Xffza3pVRKQdQzOmzcvERJAASCxZ8qUKcKANxGBWwJz585t9RJAASCx57777tMSgCwDEF0deOONN1q1BFAASOyZOnWqNVYFu0nfAJsJzJkzp9VKAAWAxJ77778/LbgpKgHoZgNOJvDaa6+1SgmgAJDY88ADD0gD3UQCgsuHViYwe/bsVicBFAASex588EHPAjDIBiwJvPLKK61KAigAJPY89NBDaam/X5mA6D6Bl19+udVIAAWAxJ5HHnmE2wcQkAgsCbz00kutQgIoACT2PProo9zAd8/7JQGnY3DWrFmxlwAKAIk9jz32mDLweWWZSoBsctTMmTNjLQEUABJ7Hn/8caMMQFTuQQSWBF588cXYSgAFgMSeJ554Ii2wnbFu0MuWadxMZEnghRdeiKUEUABI7Jk2bZo15gU0O61b+/PWUYjAkkBBQUHsJIACQGLPk08+aY3dAcwrM20GOOtp3FVoSeDvf/97rCQQKQHs2bMHBYAY89RTT1ljUdDzyvy6bOgarKsDf/vb32IjARQAEnuefvppa2wqAHbaRxFYEvjrX/8aCwmgAJDYM3fuXCgtLVUGPa8soKzAksDzzz8feQmgAJDYs2jRIli1alVqXiUA3rIAsgJLAs8991ykJYACQGIPrf3nzZtnTbsD3ZkOSQSWBJ599tnISgAFgLQK5s+fDyUlJan5oETgQQaWBP7yl79EUgIoAKRVUF5eDq+++qo17Q563bHsZiL3vKEMrEuEM2bMiJwEEiMA+ooxfMtQtKDvfqQvf/GLdevWwYcffpiaD0IEqqCXLLMygahJIBECqKystNqJSPQYOHAgdO7c2bftUQkUFhZyg5+dNhWB134B1zpWJjB9+vTISCARAtiwYQPW/hGFBj+VgJ9UVVVZmQB7aZBiKoJM+gnYoVu3btC1a1drvZycnIqzzz57/EknnTQv7GNv7U/YO8ASlACKioqsF40i0YO+AdpvAThQEWzatAnKysqgtrbWKmMl0KVLF2tgy9zr5OfnW00V9zrsuoMGDTLdtcJevXqNCuRLG5IIAWzevNl6zyASPWhw9e3bN+zdyDYoAB67d+8ORABbtmwJ+6shAjp06AB9+vQJezeyTWHv3r1RAG5QAMkDBRAuKAAkVFAA4YICQEIFBRAuiRAAvQ9g3759YX89hEPPnj2tnviEgQLgEZQAaC1z4MCBsL8e4iIvL8+6DFhXVxf2rmQbFACPoARALzXhZcBoQn9qCwUQHpGKiqAEQIOf3giEEogW9CYaeoem6CabVgwKgEdQAkCQiIEC4LFr1y4UAJIECvPz81EAblAASEJAAfBAASAJAQXAAwWAJAQUAA8UAJIQUAA8UABIQkAB8EABIAkBBcBj586dKAAkCRT26dMHBeAGBYAkBBQADxQAkhBQADxQAEhCQAHwQAEgCQEFwAMFgCQEFAAPFACSEFAAPHbs2IECQJJAYd++fVEAblAASEJAAfBAASAJAQXAAwWAJAQUAA8UAJIQUAA8UABIQkAB8CgrK0MBIEmgsF+/figANygAJCGgAHigAJCEgALgEaQAamtroaamJuyviMSAdu3aQefOnYP8EygAHkEJoKKigt5mHPbXQ2JEp06dYODAgUFtHgXAIygBFBUVWe+gQxAThg4dar1XMgBQADxKS0sDEwC+IBQxgTYZBwwYAB07dgxi84X9+/dHAbgJSgBbt27F4EeM6d27t/Vq+QBAAfAISgDbtm0L+6shMSQ/Pz+wJgAKgAMKAIkSKIAsgwJAogQKIMuUlJQEIgB6CbC+vj7sr4fEDBKkkJubG8SmCwcMGIACcBOUANq0aWN1BOKlQEQXWvvTKwCNjY1BbB4FwCMoAdCbOhDElEOHDqEAsklQAqC3drZt2zbsr4fECJotHjx4MKjNowB4BCUASl5enjUgiIrm5mZoaGiwxgGBAuCxfft2fBoQSQKFAwcORAG4QQEgCQEFwAMFgCQEFAAPFACSEFAAPFAASEJAAfDYtm0bCgBJAoWDBg1CAbhBASAJAQXAAwWAJAQUAA8UAJIQUAA8UABIQkAB8Ni6dSsKAEkChYMHD0YBuEEBIAkBBcADBYAkBBQADxQAkhBQADxQAEhCQAHw2LJlCwoASQKFQ4YMQQG4QQEgCQEFwAMFgCQEFAAPFACSEFAAPDZv3owCQJJA4dChQ1EAblAASEJAAfBAASAJAQXAAwWAJAQUAI/i4mIUAJIECocNG4YCcBOkACoqKqCqqirsr4jEAPoque7duwf1YlAKCoBHUALYs2cP7N27N+yvh8QI+io5EqRBbR4FwCMoAaxfvx5ycnKCNDrSiqCvBKPvBhw0aJD1huAAQAHwCEoAmzZtgvbt24f99ZAYQd8N6LwiPABQADxIoAYigJKSEisDQBATjj766KAqjsLhw4ejANwEJYDS0tKwvxoSQ3r16mW9Wj4AUAA8UABIlEABZBkUABIlUABZZuPGjYEIoLKyEqqrq8P+ekiMaNOmDfTp08e6IhAAhSNGjEABuAlKALQnd/fu3ZYIkOhQ/cEHcOjLL6GuuBjqN2+2TkY6tD/xRGg3bBh0GjUK2gZ3LV4IPV9oByC9bEyvBgSAVACze/fuTkY/JcHwEzI+hUhoqBMYZFxIRivI+IWr9uxZkemOJEIAXbp0wasAEWJLQQGsnz4dGqqqoB0Jth79+0OfESNSy+n/1K5Nm6CcDN1PPx1G3HQTdP/ud7O+nzU1NdDY2BjEpoUCeLV379vI6N6OPXp070qOS3cygJ2F1B08CDvJMdlPmrS0hIihkIwmXF1e7lkEkYqKDRs2BCIA2o4L6HouYkA9CfhlN98Me5cuhU49esBJZ58NQ087Tbw+OeHL1q6FdQsWQN8rroChv/lN1va1rq4ODpK/HxCFxxxzTJoAXsvPp7X+3KOHDz/ruNGjgYyFHz6wbx9s+fxzWLdokXWMSNBMuKa8fJqXHUmEACg0ncM7AcOD1vYrb7gBqtavh5EXXQTf+MEPrPIKUpuVrVlj1WzsydiHBEC/E06AbrQGJHy9cCGUd+gAw6ZMCXxfabs/oJrfIU0Ac0jwtzvqqA9Pu+qqU5zA30GOyR5yTPbZtT2lDfn++SRT6k+Oy1FEoDT4F7/wAuzauJGuU/CL8vLxpjuSGAEg4dFQXQ2rfv1rqN+2DX44bpx1EpeQE/yL+fOt2ow2z5wTMTW2y3qRgDh+zBirRty2bBlsIWn5kLvvDvsrZUpKAK+T4O8xZMiH37n88lNI2g/rieg2LF5spfuUZnugzYDUNGEwyZxOJMeFiuDT2bOhmGQE4EECKAAkUNjgH33jjVbqv+yf/7RSWHewW9OCsmPPPBNOuPBC2E4ksDn+ErAE8AYJ/u4k+M8YP/6Ug0SEy197DSppjW8HO8UtALasLckITiXZ1BAigyVEApvJMaWZwDgDCURKAEVFRSiAVkQjCf6VNPi3b4cxdvD/75//bKX9To8/RSYAtpye6KdceulhCZBtD46vBApXn3nmxbTmP33cOCv4//Pss0dqfU0BOJcoz/j5z62+lCVMJqArARQAEgipmp8EP635O5PgX0iCf799U5auANh1admQkSPh27YEtpC/MSiGEmjcv39F2U03ARv8dmeehakA6L/fdUmAZgLjNSSAAkB8p8FV81vBP2MGVJSVWctzwLsAKHGWAM2K9vzxj3DqqFFW/8cnTPDrCCCtnBEAHf7LlsAnjASuVUgABYD4Cg3+FXab/2xSy3Vigr9FQDvzmgJgywfbEiix+wQG3XVX2F9dCQ3+fST4T+YEPyVTAVBoJjDMlsAmuzkgk0CkBLB+/XoUQIxxgr+B1Pzu4KdwAxqO1Oxa5UwZzQROdiRA/vbACEugiQb/gw9awX9QVPM7Y0W6DyAWgJMJUAn8h5HALwUSQAEgvpCq+Unwj7WDfwGn5nfGfgjAyQSiLgF38C+hHX6HDmnX6qYCoMP/cUmANgeu40gABYBkjBP8dST4z7GD//1nnoGKHTvEQc9OCwQAnCsBvHVZCdA+gQERkgAv+OtJ8AsDWFDWIksAQVOBGTsS+PiVV2ATOTakfOr15eX3sfuHAkAyZvXEiVC+eDGcQyRA7+unwb/PDn5R0LNlXgXAfmYQOdFPvuSSSEmAtvn3k+A/yRX8FJkAdK4ACNd1jakEhtsS2EiODeFiIoF5zj5GSgBff/01CiBmVJD0csVvfwvfvegiGHH66fCeXfNTdAVgTRt2BPLKaCZwEiOB/pMnh3ZcaM2//6GH0oK/wan56Qqc9P9wsT8CYKe/d9llMJz837z52GOwd8eOzTeUl6cesUQBIBnxxY03QsfKSiv1/yc5wXSCX1sAoNcPwJZFQQLu4P+USfspRuk/mLX/uZ8nw/eJBOgTl3NIRkIYTyRQwB7rSIACiBeHSkrgExJso8eNg71kesXChVpBz13uQzPAWXeQLYFSu2MwmxIQBT9Fp63PKxO1/1usyy53TdPhwgkTYM1HH9GmwDwigIvZYxgJ1q1bhwKIEWVvvQUlJOU/l9T+c/74R3Fvvs60IqhbfEaQBTjTbgn0+8MfAj8eNPgrH374SPA/95x1qY+iqtEB/G//u6f7DBsGx//wh/DBCy8AEUAOe7wjAQogXhSTE7ztqlXWNO1gMhVAizKPzYC0Zcw2aHPgxCxJQDf4rbFB+m/UVwByAVBoFjD/8cfp5Km/2rt3BQoA8QwVQM/t2620sr62VhyUoCkCg2YAgJ4YUhJYvhw2V1UFIgFZ8FO81P7CMjBP/9npb515ptVc27Fp0ygigEIUAOIZKoCjiorgq8WL5Wk8aNT+gs8D6F0NkK0/KEAJmAS/rDZ3r+tn+s+W9ejb1/oZtkgK4KuvvkIBxIji55+HTowAKEE1A3SygLRtiSRgNwf63nlnxt+fBn/VI48YBX+LctCr6aVlvM9KltO+ACKA6DUBUADxYndhIay56y515xzwg567nqIZAKCZNXA+kyYBkgn0zSATsGp+Evwnc3r7KTq1vLtcJgzl+qBO/9nPk+CPXicgCiBe0FuAF48dq9ebDwYi8CELcH/Gge0YLPbYHAgi+N3lutmCSfrP/M15RADRuwy4du1aFEDM+HLSJCj/+GPjLEAqAs7nne0KP6eQAFs2iLlZyMoEDJoDTtp/8o9+lHaHH4U9eVVB7izjBrrH2p+3TCCd8UQABewxiQQogPixnwTRiltv1RKAUZkiCwDIvgRo8FeQ4D/VFfy8wJe1+Q8v1kv908ayZTrTh//mZhL8w5z9QAEgGbNh2jQonTPHmtZpBsjKZNtIjT1IgF3mlLMSsJoDEgnwgp9N+ylegj9tzHzOKQ+g9rd6/9njEBlQAPFl2S9+ATUbN/qeBbiXpZYL+gPcnwPO3wFGBIM1JKAKfl7gs+Vawe/6vG7Pv3teKojm5lTq7z4ukWDNmjWBCKCpqQl27txpjZFgoC/+KJs61fpBEL+yAABvTQHncyBbbm+DQjMB51HidXv2QJtf/hJ69+5tvVHKCv5HH4XvkOA/IKj5RYHfYtpD8Dufk9X6zljR+dci+N3HJHSCEkBJSUmQr3lCbJoOHIC9Dz5o/SQYxUsW0GKZYVMAOJ8VLWfnBzE/KrKytBTaXHstDO7VCyofe4xf87uC3ioSTTNvGPYS/O5yUwkA8/Sfm0QIYMOGDdC2bVt8NVgWoBLYdf/9ULtli3EWIFzHJwm413HPs78stJJUGt1I8J0xdmzab/jxkIrAIPidMuVlQs5YUiYMft7xCJUvv/wysAyApnNIdmiqqYFt99zTQgKemgDO2OBav6pJ4F7GljkS2Ll2LfQcPpwb/LyTtIUEOIHPTouCP22smfo7Y06ZNPhFxyE0ghLA7t27w/5qicORQN3WrdZ8RsHvjA0u84lSft5r4t0lzk+OV5aVpV7awUN0sspq/dS0RvA786JtKCSgDH7edw8VFEDrgicBnXY/gEcJHF5BKQF2OyL6nnAClG/aBA2uR3pFsEHvXr9FABsEv2osavNfrxH8vOMSKiiA1kcjkUAJbQ4QCWh1+jGf9XSt//AKyk6/tPkcb2HgDnqrTDYtuyvQtc0MUn/t4Ocdi1BZvXo1CqAVQjOBkilThBIwbQpY0zopv0IEojJTtK4GaFwq9BL8rrFR8Pv1/X0jKAHU19dDRUVF2F8v0bglYNz+Z7alkwmk5jk3BfHmVeUsWp2AqQnx5ULtewT0xsbBr/t9s0ZQAujWrRtUVVVBdXV12F8x0TSR/4NNkyfDgY0brfkgJOCeTs0LRCAq00EqAldAi6aVlwn1xp6CP5PvHgirVq0KRADdu3fHewAiAr1jcMn48VBVVGTNZxT8ztjghh/7A9zlXpEFvXsdWa0vXI8zZpaPv85j8Pt5DHwhKAHk5eVBly5dUAIRIQgJWNMG6b5bBrJ1WVqcoILr/bwyv4KfGWcU/DrfN6sEJQAkejRWVsKaCRPg4KZN1nzGwe+MBdkAb15VnpJDM/+0FN4HIJnXukcAtCSQcfBLv3sYrFy5EgWQIKgE1t5+u+8SsKYNbgH2A2Xtr3NnoMZyP4M/iOOQESiA5OGHBKTTmim+aSBo1/6KwBdNS8p8C34v3ztQUADJhErgKyKBA5oS8DJtzWvcBuwFbu0v6RswrO3ZaV+D36/v7xsrVqxAASQURwIHi4ut+UwkoFpmlWnc/eesoXNSqu4KdM97yAB8D37RsQkNFECy0ZWA7rTOfKrc8HbgZoOOwWbJcs2OwECCX3Y8QgEFgKgkoCrTnVeVm2B0ZyBnPqzg9+v7+wYKAKE0EAms40iAndbNAEzKMkUV9O4yjelAgz+o4+CZL774AgWAWNBMYN0dd6QkQMmkKaAqVy1zo3sVgFeuOe359l4TUABIZJFJQHeaN6+7TIdmg2U6zQAvj/RmAgoAiTQNjARUTQEv835j2h/A6+3PVvBn43gYsXz5chQA0gIrE/jd74QScE/rzOsuU+HldmD3PNvmz2bwZ/rdfQcFgIhgJUDJNPizfSswr8y1POvBH8RxyAgUACKDNge+ZiRAMW3765zwsnWUvw2oUcZL+3V+wDMIIiWAZcuWoQAQKY2OBDZvTisPowlg0gHoLmPT/rCCP5PvHggoAESHurIyWHXNNda07u/965Rlgse+gEIS/KMCOkxaoACQWEGbAbueeAIObtwI+4gIHHQf9NE94d3r6Z6Y2n0Bzc0wYuRI2LhsWcGv9u4dH/yR0/ueofL555+jABAhNP3fNW0anDV2LOwtLYV3Z8ywymWP/6bKJdvNVhPAKrefIejZrx9cdMcdsOGzz2DR7NkFvw5JAigAJBbQ4N9Jav5R55wD1Xv3wjvPPAP1tbVp65j83n+2mgDWMsFLQ44hGcAPrrjCksBHRAI3hiABFAASeZy03wn+t3WCn7Mdry8A8YLu48FUAj+0JfBvIoGbsiyBSAngs88+QwEgaVg1P0n7f2QH/1vTpx8Ofi8/AOou90kIokeDrWUa81QC/00lsHQpFBIJ3LxvX9YkgAJAIgsN/h0k+H9Mgr+K1vwk+OuYml/1M99BPgIswviGIPvFIceedpolgSJbAr/JkgRQAEgkabDb/D8+91wr+N8SBT+oRcD7jJflDlq/ECQrE7w/4BgigbOyLIFICWDp0qUoACRV84+2g/9NO/h10nve7/0HnQloXQ3QeGkI5VhGAh++8krBbysqApUACgCJFDT4y0jwj7GD/59PP30k+A1/8z+tTEMIfpB2AmsGvbvs2JEjYdT//A+styVwS4ASSIQAduzYAQcOHAj76/lChw4doH///mHvRiDU2df5neCfzwa/jUoEorIW5R7uF6AIT1DBpT6jMuZFot8gmYAjgQ+IBG4NSAKREsCnn34aiAA22T833VoYPnx42LvgO/V2b//Z551nBf88UfCz05q1epA/CELxdENQ2gz/1eFUAj8iEvjalsBtAUggEQIoKSmB9u3bh/31fKGWBMWAAQPC3g1fqbODf6wT/E89BbV1dWbP/huk+EGd9EZPCkpeG87Of5ORwP++/HLBhP37fZVApASwZMmSQASwf//+sL+ar9DXnbcW6quq0mt+Evxpvf2Sh32E6b/hCz+52+BgenLyXiTq5XHhb44cCT++8kpLAguJBG73UQIogBjSWgRg1fxPPpmq+ee6g59Z18u7/ngykK2fKdyT10PQp+aZTkSaCYwmElhnS+AOnySAAoghrUEAqbT//POt4H9DFvzsB0lAZ/wOgKBuCZb0+ovKVYHPlh/HSGABkcDvfJBApATwySefoAA0iLsAaNpPr/OfYwf/63/6E9SRNj9F+xVfHBHwPi8q01ru8fXgquWyoHcvd69LM4ExVAKffgrvEwlMrKzMSAIogBgSZwHQmn8HSfvPZYK/1q752ZTdqJY3kIHOMi94+nUgyaVD2WeOO/30lATeIxL4fQYSSIQA6D0A9fX1YX89X8jNzYUuXbqEvRueYIO/khf8Np5FYH8ujGcAWKQ1v+J+AZUsnOVUAmcTCXxlS2CSRwlESgCLFy8ORAD5+flQSU6+1kDXrl1h165dYe+GMQ3V1Vbwn3fBBVbwz7GDX3mpT3J/v44MRJ9VbUuF0fMAXoOe+SwvO/iWDxJIhABa251zpaWlYe+CETT4y0jwn0+Dv7wcXnOCX3DtXnad36R2565rIAUTRMGetkyjXCfw2WkqgbFEAmupBF56qeDOqiojCSRCAJ06dYKOHTuG/fV84dChQ1BNAiouuIP/VV7NbyKCwx/gLhd9TlWevpJirWb1Ker5vYGCqwhCCdjrH08lcNVVlgT+RSTwBwMJREoAixYtwoeBWhFW8JOAv8AO/tm0t1/ySz45mg/78O7p96PDz8/HgVXr6Tw0JOsUbHZdNaASOMeWwLtEApM1JYACQAKBBn8pqfkvvPBCK/hfcQW/NMANnvozlYFsW5lg/BsBGkHPnZdcLqQSOJdIYA2VwKxZBXdVVyslgAJAfIcN/v00+Ml0KvhdvfTSlN/r3X/231GtGzS8gG9RLijjpfo667ISeGfWrIK7FRKIlAA++ugjFEDMaaipsYL/Iib4uZf6DB7p9e3lH5rvDqAMvu462LNwIRxwvYHIjej2X9U6WhIwCHz2UuHxZ5wB59kSeHvWrIJ7JBJAASC+YdX8JNV3gv9lUfCnJnKkGQCvzKsMtJbb2x5+663Qa/RoaCQy++rOO/kS8HB3oMlLQ2TriAKfLT/BlsCXtgSmCCSAAkB8gQZ/CQn+n9jB/5Iq+EEsAvd6vPnDH9NP83VP9BG33WYFv4MlgUmToEaRCbgxFoFh1iB7ZsCBSuB8KoElS+CtWbMK7q2paSEBFACSMTT41957L1wzbpwV/LNo8B86ZC0TXcP3KgJhmUF6L1pvOAn+3kzwO1AJrCUS4GUCXn8g1Cr30FQQBT47nyaB00+HC66+2pLAm7NmTbuvpmaCl2OUFVAA8WT11KlwNqltOnTsCP9wB7+NzrV+03a/qFz1e/+8pSMEwe/gSECWCSgfDsrgJiGdwE+bZh5DPpH831AJvDVzJqxeuvRiIoF5quMaCiiA+FGxahXUv/46jLnkEpg+ZUoq+B283ONv+vivqvzwZsRLj1EEvwOVwBrN5oDJy0JE5bKnBN3zvMBny08iEqD/RzPuvXfzpD17hukcs6yDAogfX0ycCP/3/PPho3fegaLVq4Xr+SEC1fqqv8vjmAkTIF8j+B0abAnQ5kCzxl2BlEyfFMwk8Fkuue462FxUBJ//+9/jSRZQoHN8sgoKIF4c2rkTNkyebNUss/70J63P+PLUn8EDQrJ9oDV//pgxxt/bksDvf98iE8ioP8D6Ry/o0+Y1At+hW48ecMkNN8BfH364kAhglO7xyhoogHhRtmABdFq2DPbv3Sut/XmY/MJvEI8AH+sx+B2oBL7kSMCN7v3/onX9CHyWC668EhaQJtsfystzZMcnFFAA8aL4H/+AAST4F7/7rudtZCICbpnG7cDfyDD4HVgJaP86kNeef+bzXgLfgfYF0Cs1WzduPJVkAStQAIhnqACO3r6dtikz3pbpT30b1fiMFGjN38eH4HegEljtygRkjwanLTcpyzDwHWgzoFvPnlQAo4gAClEAiGeoANqsWmWc/stQiYC3jqjMXf6NCRN8DX4HKoFVVALFxS2WeX402JpRvzvAC/n9+8Ou0lIUAJIZVADFs2YFtn2vMuCVfzOg4HdwJFDNkQBFWwSaPyPuA9gEQDJj93/+A6vvvz/wv2Pym/+8dWnw9w0w+B2oBFZKJOAQYtCnIMGPnYBIZtBbgD+69NKs/k1pjc8RwnFZCv7UMXFJQPa0YLaDnmEeEcDFdAIFgGQEvQ1495Ilof19mRCOu/32rAa/A5XAiokToZp2DHp4WUgWwBuBEH+gtwIvnzQp7N1I4ZzQ3wop+B1odvSFoDkQ8km+ggT/qc5M1ASwj4y6h70fiBlFf/4zbJs/P+zdSEGDv1+Iwe/gSKBK0SeQZazOP2cmagL4kIzOCns/EHOW3nSTsvMrG0Ql+B2oBJZrdAxmiVTq7xA1ATxBRreFvR+IOVE40aMW/A5RODbACX5K1ARwFhl9GPZ+IN4I80SPavA7hCwBbvBTIiOAmTNnWvsyZMiQDwCbAbEljBM96sHvEJIEhMFPCVQATlBrYq07ePDgb+fk5CzPzrFBgiCbJ3pcgt+movill75TPHPmXDL97Sz8PWnwUzISgCLAde/SbPFAGJHANUQCz2fhACEBkQ0JxC34m5qaxmzbtm3l9gce6Fa7fftCaG4OUgLK4KdoCYAT6KJ51c+98cbcZQMHDrw6Ly/vmQAPEBIwQUogZsG/v66u7vyysrKVYN8GsKugoFvV0qX/gqamk3z/azk540fMmPHC1VdfrbzlQCgAV9CrAtc9zZvXXZYaevfufVLHjh2nkmzgv3w/SEhWCEICcQp+UuvP2bdv3z3V1dUVcDj4U0PFv/7Vde+bb85vbmw80a+/l5OX98vh06cX2LMpAYhk0EIATOC7gzUXxMGaK5lXTSuXd+3adWCnTp1Gk4zgNCKDLpx9t6bt32jT+tFZxXGQriv4LTg/fq4uMp2yflJfVQXLb7mlZ+2ePT0y3dawa69dP+jii53ZtP8I+4c/TV63p/0iXvc0528xPwPQXNLY2Ph1TU3NwsrKym1wJOibXOPm6s8+67LrxRdfbq6v/1amxya3Q4cbhk2b9iLzN5z9coYWIkg74ezg5wVyboaDs408je3lSOZ50yZjHWGphlzm2JlkPMCZdq+Ty1mvVdCwb1+HkocfvrKhoqK31210Hz163tGXXPIZpP8EftoJDkxwaQxNirImwdiZbpKs1ySYb1F28OuvO+945plnm2prj/V6bNp06/abIQ8//A/J30l9R1YCqRONCX42+PKYoY1rnjfkcqZlY/d0Lufvi8TgRRCyaS9CAMMy93FXNZ9aE82NlZXtSNv3tANr1w41+WBOu3b1PcaO/bTH+ed/5WwL0oNeN+BFgd8EZgKQBTidbxQsa4SWMrDKa7dtO2rns8/+qn737h8bHdXc3Kr2/fr9v4H33DObzDXYf8MZ2Hn3PlrZgHWScYK/DTO0JUM7e3Dm27im3YIwkYVbGiIByESgmxmIglsn4IFZD0AdvLJg1tkGCD4bR9JS5apPPsnfO3fu8IbKyvaqD3Y6+eSdPS++uKhdv341wA94AO8y8JoB6Nb0ouB3TzvzjeWvv/6dykWLft506NDRqmPT9uij3+9+3nnPdv3+97fC4WCvtwd2mg51dlkDu7+WAFxpPxvY9D+ngz0+ipluD+lSaAstZdAW+CJw5lWZgm4TwUuwmwwAeoGtc3UDOPOq7bQ20t5eVVtc3LHy44+71ZWUtGNXyu3YsanDscce6Dxy5P62+fm1nM8287YHYhG453kDRdR8EGUMomaArghYATSy80QCQ2tWrDiufteufPuR4mbauUCyoQPtBgxY1/V731va8fjjSyE90GuZ4ZA90OkD9tiRQypDYQXgBKgT5EfZQycydLGnO9pDe0iXgTO4MwRZNqBqCoj6AvwIcpCUAegHOTvWnQZOuc66rQVex5nO4/KqaZOxV0mo5CCSAU8MvIygkTM0MGNnqIeWNTwdDjLDAXugmVMVHJFAHbPNJkcATgBSE9Oang38rmToZk93giPZgJMRuDMBdzYgCn5VOz/TQAfFtLsMQB6QXq8oiMpMPt+aMPmdS9NfzVbJRVWmO52JGFR9A2w2wAY/KwE28Nmanw36ajgc+HSosOfpskP2Z6y/QwXABiINaFrD00B3Ap8OPe15NhNgJeDOAtgMQFbri2p4rx1xvGneWHdaZ15UJivXXZ4UdH4jQ/cXtPy4DGiSPbDTulKQNRdE2QArASfwHQk4KT9b49Nhvz3stcc1cKRZYPUHsAJw0n8a4J3hcMB3twfaIcFmAY4A6FjUF6Bq78tSfJPABwg+6EVlJsszXT8TvP4tncD0C9O/pVo/EznoNjFEZaaZgfDqAKgzALcAnJq/Eg7X/HQoh8MCcLKAVDOAJwAa1KwAaOCLBODOAERNAFlPv+qafVRqflW5apnJeq01M/AStKbr6fQnyOa9BL+uAGTNAlHwsxLg9QGwAqiBIxmAIwAa+KwADoJLAGwfgNPzT7OALnCkD6CHPd0Z0vsA6ODU/u6OQHcHoCwTcGcFXpoDAN4FIZpWdc55aS5ksr4XMt1mEFmAST+A7vo6qb5Of0EQwe61H0CUAbibAHRwMgAnC6BDJRwRQSWk9wG0EAAd2Mt/TkcgDXon+J2rAE7gd4D04Hf3Aag6At1XAdzNAt07+3iiAPA3e/BDGl4k4gUvmY2DSZvZC16CmS0zCWbVWCewKU2C5bIg93Jp0N3+F3UCsgJgswD2KoCTDThNAnf7P+0qAJsFONf4nRre6RTkXf5zxu62v0gAmdwHwOsz0M0YRLfvepGDybV/L/cAgGDeBJWYePOioPNLALodbrrruteXtccB5EGuug9AFvAmNwfx2vrc+wBALgDeDT9sU4CVgdM0OAQtbwhqcScgG6hOau8EfDvgd/ix6b4s8HOB3yQwvRPQ5BbgTC8lypoYMkGYZAuiS5Km6MhFlhnwgs4kSE2QBSlIpkXrm1zPp5gEus7zAF5uAnIHvOo+AHaavaGngZmvEwwtrv/TwX0rMMX9DAB7Zx/vtl9Vms9r/+s8H6B7c5DXh4RUQhA1JUTlAHJpgGtaJRQ3Xq4wqDIXEaoa0wRVKi8LaNX6flyOMw16VWrvlDW6ykS3AXNvBwaxDJxynhR4HYWsMNhtWN8zJQCKSwLuQDMJXJOA9nr7L9tfIMsEdJoIpk8C6vQxiGp1VWelbpCKMMlUeOhc1mKXm+Jl+7rBzVtH58lA1YNAqlRf1rHn9fZg2W3D2s8VcNZJfW/nicC0E0HjtwB4Nags2HhjL+uoanOdGj7TJ/90mgS6TQHV51v83xigsz+87fOCromZ95oFiLavqs0B9IThJQPQkYTOE4MmwpCJRJZd6DRDZPvS4jhxHwdmkfwakE4NpltD+hGEfmwHMlwGis+5j7Pu8fSKSZOEhypF96vtL/sbpuurBOB1mVd5BLEd0CznHRML3q8CKU80xe8B5gjGznSOZL0cxXqqgDL9nM7fNp0Gg2W8YyhrLuiSIygzSf3dyIJLtK4JshNXtG3VCa7aZ91gMV3mdTum30ln3OIYqn4X0PiEk/wScI7BvGratMx07NdndNeXHQ/V57ygE/yyJgA7LwtQU1S1u+7+iD6nm0WYrpNJIOqWyaZ15i10fgiUJdMTLQ2N9wDoyoNXpppXreNVUH4t0/mMX/8fKmnpoBuYXtA96b18xo9lpuuabk/1faXH2DTIZfgqAB0MXxais49+Ske1Pb//lu5yU3RFpCKI4DfZnqcAAX2R6Czzui2TdVL4Gdw6ZF0AfuFBJEEdAz867ILCr+0HfVL60bEY6nfLduD6xf8HkeszafAzxYMAAAAASUVORK5CYII=";
+	
+	
+	
+	public static String getDocTypeEntity(){return StringUtil.DOCTYPE_ENTITY;}
+	
+	public static String idTrim(String str){
+		return (str == null) ? null : str.trim().toUpperCase();
+	}
+	
+	public static String toUpperCase(String str){
+		return (str == null) ? null : str.toUpperCase();
+	}
+	
+	public static String nullTrim(String str){
+		return (StringUtil.isEmpty(str)) ? "" : str.trim();
+	}
+	
+	public static String getNullIfEmpty(String str){
+		return (StringUtil.isEmpty(str)) ? null : str;
+	}
+	
+	public static String getEmptyIfNull(String str){
+		return (StringUtil.isEmpty(str)) ? "" : str;
+	}
+	
+	public static String getReplacedIfEmpty(String source, String replace){
+		return (StringUtil.isEmpty(source)) ? replace : source;
+	}
+	
+	public static boolean isEmptyImageStr(String str){
+		return isEmpty(str) ? true : (EMPTY_DOCUMENT_PATTERN.equals(str.trim()));
+	}
+	
+	public static boolean isNumeric(String str){
+		if(StringUtil.isEmpty(str)) return false;
+		
+		Pattern pattern = Pattern.compile(StringUtil.NUMERIC_PATTERN);
+		Matcher matcher = pattern.matcher(str);
+		return matcher.matches();
+	}
+	
+	public static boolean isEmpty(String... texts){
+		for(String text : texts){
+			if(text == null || "".equals(text.trim()) )
+				continue;
+			
+			return false;
+		}
+		return true;
+	}
+	
+	public static List<String> stringSplit(String str, Integer charLength){
+		List<String> strings = new ArrayList<String>();
+		if(!StringUtil.isEmpty(str)){
+			int length = str.length();
+			for(int i = 0 ; i <= length;){
+				int endIndex = i+charLength ;
+				String temp = str.substring(i, ( endIndex > length) ? length : endIndex );
+				strings.add(temp);
+				i = i + charLength;
+			}
+		}
+		return strings;
+	}
+	
+	public static String generateRandomAlphaNumeric(int numberCount){
+		numberCount = (numberCount < 2) ? 2 : numberCount;
+			
+		String str = null;
+		Pattern pattern = Pattern.compile(StringUtil.ALPHA_NUMERIC_PATTERN);
+		Matcher matcher = null;
+		
+		do{
+			str = RandomStringUtils.randomAlphanumeric(numberCount);
+			matcher = pattern.matcher(str);
+		}while(!matcher.matches());
+		
+		return str;
+	}
+	
+	public static final String generateConcatenatedLongString(String str, int limit){
+		if(StringUtil.isEmpty(str)) return "";
+		if(str.length() < limit) return str;
+		
+		String temp = str.substring(0,limit);
+		return temp + "....";
+		
+	}
+	
+	public static final String maskMaskQueueNumber(Integer number){
+		return (number == null) ? "" : QUEUE_DECIMAL_FORMAT.format(number);
+	}
+	
+	public static String booleanToStringMasking(boolean bool){
+		return (bool) ? "Yes" : "No";
+	}
+	
+	
+	public static int convertToInt(String str){
+		try{
+			return Integer.parseInt(str);
+		}catch(Exception e){/*IGNORED*/}
+		return 0;
+	}
+	public static long convertToLong(String str){
+		try{
+			return Long.parseLong(str);
+		}catch(Exception e){/*IGNORED*/}
+		return 0;
+	}
+	
+	
+	public static int convertIntWithMasking(String str, int mask){
+		try{
+			if(str.length() > mask)
+				str = str.substring(mask);
+			
+			return Integer.parseInt(str);
+		}catch(Exception e){e.printStackTrace();/*IGNORED*/}
+		return 0;
+	}
+	
+	public static String returnTrueExpression(String expression){
+		return (!expression.startsWith("#{")) ? "#{" + expression + "}" : expression;
+	}
+	
+	public static String parseToItextHtmlFormat(String str){
+		List<String> list = new ArrayList<String>();
+		String[] splitted = str.split("font-size");
+		for(String token : splitted){
+			if(!list.isEmpty()){
+				// perform scan or look up
+				char[] c = token.toCharArray();
+				StringBuilder builder = new StringBuilder();
+				boolean isReplaced = false;
+				for(int i = 0 ; i < c.length; i++){
+					String character = String.valueOf(c[i]);
+					int subsetValue = 0;
+					if(!isReplaced){
+						if(HTML_CSS_FONT_LIST.contains(character)){
+							if("s".equalsIgnoreCase(character)){
+								builder.append("13pt");
+								subsetValue = 5;
+							}else if("m".equalsIgnoreCase(character)){
+								builder.append("14pt");
+								subsetValue = 6;
+							}else if("l".equalsIgnoreCase(character)){
+								builder.append("18pt");
+								subsetValue = 5;
+							}else{
+								String character02 = String.valueOf(c[i+3]);
+								if("m".equalsIgnoreCase(character02)){
+									builder.append("8pt");
+									subsetValue = 7;
+								}else if("s".equalsIgnoreCase(character02)){
+									builder.append("10pt");
+									subsetValue = 8;
+								}else if("a".equalsIgnoreCase(character02)){
+									builder.append("24pt");
+									subsetValue = 7;
+								}else if("l".equalsIgnoreCase(character02)){
+									builder.append("36pt");
+									subsetValue = 8;
+								}
+							}
+							isReplaced = true;
+							i = i + subsetValue;
+							continue;
+						}else if(":".equals(character)){}
+						else if("".equals(character)){}
+						else if(" ".equals(character)){}
+						else{isReplaced = true;}
+					}
+					builder.append(character);
+				}
+				list.add(builder.toString());
+			}else
+				list.add(token);
+		}
+		
+		
+		return StringUtils.join(list.toArray(),"font-size");
+	}
+	
+	public static String convertMinToCron(Integer min, Boolean repeat) {
+		return (repeat) ? "0 0/" + min + " * * * ?" : "0 " + min + " * * * ?";
+	}
+	
+	public static Integer convertCronToMin(String cron) {
+		if(StringUtil.isEmpty(cron)) return 0;
+		String strCronMin = cron.split(" ")[1];
+		return (strCronMin.indexOf("/")>-1) ?  Integer.parseInt(strCronMin.split("/")[1]) : Integer.parseInt(strCronMin);
+	}
+	
+	public static String jsonWrap(String label,String value){
+		return "\""+label+"\":\""+value+"\"";
+	}
+	
+	public static String maskNric(String text){
+		int totalLength = text.length();
+		if(totalLength > 4){
+			totalLength = totalLength -4;
+			text = text.substring(totalLength);
+		}
+		
+		while(totalLength!= 0){
+			text = "#"+ text;
+			totalLength--;
+		}
+		return text;
+	}
+	
+	// we will perform non-bias split here
+	public static String[] split(String text, String seperator, String seperatorAsRegex){
+		if(StringUtil.isEmpty(text)) return null;
+		text = text + seperator + "x";
+		return text.split(seperatorAsRegex);
+		
+	}
+	
+	public static String justifyLeftAsHtml(String text){
+		return justifyLeft(text,50,"<br/>"); // 40 for free owl in CSS equivalent to 70px
+	}
+	
+	public static String justifyLeft(String sentence, int breakPoint, String newLineSeperator){
+		if(sentence == null) return null;
+		
+		if(sentence.length() > breakPoint){
+			StringBuffer bufferedSentence = new StringBuffer();
+			String[] words = sentence.split(" ");
+			int currentLength = 0;
+			
+			for(String word : words){
+				word = word + " ";
+				currentLength = currentLength + word.length();
+				bufferedSentence.append(word);
+				if(currentLength > breakPoint){
+					bufferedSentence.append(newLineSeperator);
+					currentLength = 0;
+				}
+			}
+			sentence = bufferedSentence.toString();
+		}
+		return sentence;
+	}
+	
+	public static String getNameInitial(String sentence){
+		if(StringUtil.isEmpty(sentence))return "";
+		
+		String[] words = (sentence.trim()).split(" ");
+		String[] initials = new String[(words.length > 4) ? 4 : words.length];
+		if(words.length == 1){
+			// if more than 3 character, will make use the first 3 character
+			initials[0] = words[0].substring(0, (words[0].length() > 3) ? 3 : words[0].length()-1 );
+		}else{
+			for(int i = 0; i < initials.length; i++){
+				if(StringUtil.isEmpty(words[i])) continue;
+				if(i >= words.length) break;
+				initials[i] = (words[i].length() > 1 ) ?  words[i].substring(0, 1).toUpperCase() : words[i].toUpperCase();
+			}
+		}
+		
+		return StringUtils.join(initials," ");
+	}
+	
+	public static String getSubStringAfterLastOccurance(String string, String token) {
+		
+		if (StringUtil.getNullIfEmpty(string)==null) return null;
+		if (StringUtil.getNullIfEmpty(token)==null) return string;
+		
+		int indexof = string.lastIndexOf(token);
+		if (indexof==-1) return string;
+		return string.substring(indexof + 1);
+	}
+	
+	public static String getSubStringUntilFirstOccurance(String string, String token) {
+		
+		if (StringUtil.getNullIfEmpty(string)==null) return null;
+		if (StringUtil.getNullIfEmpty(token)==null) return string;
+		
+		int indexof = string.indexOf(token);
+		if (indexof==-1) return string;
+		return string.substring(0,indexof);
+	}
+	
+	
+	public static String joinStringWithEmptyIfNull(String... texts){
+		List<String> joinedTexts = new ArrayList<String>();
+		for(String text : texts)
+			joinedTexts.add(StringUtil.getEmptyIfNull(text));
+		
+		return StringUtils.join(joinedTexts, " ");
+		
+	}
+	
+	public static String replaceTokens(String template, Map<String, String> replacementValues){
+		StringBuffer buffer = new StringBuffer();
+		Pattern pattern = Pattern.compile("\\{([^}]+)\\}");
+		Matcher matcher = pattern.matcher(template);
+		while (matcher.find()) {
+            String replacement = replacementValues.get(matcher.group(1));
+            if (replacement != null) {
+                    matcher.appendReplacement(buffer, "");
+                    buffer.append(replacement);
+            }
+	    }
+	    matcher.appendTail(buffer);
+    return buffer.toString();
+	}
+	
+	public static String format(String formatPattern, String text01, String text02, String seperator){
+		text01 = StringUtil.getEmptyIfNull(text01);
+		text02 = StringUtil.getEmptyIfNull(text02);
+		seperator = StringUtil.getEmptyIfNull(seperator);
+		
+		text01 = (StringUtil.isEmpty(formatPattern)) ? text01 : (String.format(formatPattern, text01));
+		return text01 + seperator + text02;
+	}
+	 
+	public static String generateParameterFragment(String... parameters){
+		if(parameters == null) return "";
+		
+		List<String> params = new ArrayList<String>();
+		int paramCount = parameters.length;
+		for(int i = 0 ; i < paramCount; i ++){
+			params.add("?");
+		}
+		return StringUtils.join(params," , ");
+	}
+	
+	public static String prependTextIfNotempty(String text, String prepender){
+		if(StringUtil.isEmpty(text)) return "";
+		if(StringUtil.isEmpty(prepender)) return text;
+		
+		return prepender + text;
+		
+	}
+	
+	public static String maskFullname(String sentence){
+		if(StringUtil.isEmpty(sentence))return "";
+		
+		String[] words = (sentence.trim()).split(" ");
+		String[] initials = new String[(words.length > 4) ? 4 : words.length];
+		if(words.length > 0){
+				initials[0] = words[0];
+				for(int i = 1; i < initials.length; i++){
+				if(StringUtil.isEmpty(words[i])) continue;
+				if(i >= words.length) break;
+				initials[i] = (words[i].length() > 1 ) ?  words[i].substring(0, 1).toUpperCase() : words[i].toUpperCase();
+			}
+		}
+		
+		return StringUtils.join(initials," ");
+	}
+
+	
+	public static String stripCleanHtmlSpecialCharacter(String text){
+		
+		for(EnumUnicode unicode : EnumUnicode.values()){
+			text = text.replaceAll(unicode.getHtmlCode(), unicode.getUnicode());
+		}
+		
+		return text;
+	}
+	
+	
+	public static String createQueryFragment(String operator,boolean isDateRange,QueryConjuctionEnum conjuction, String... columnNames ){
+		
+		// validating
+		if(columnNames == null || columnNames.length == 0)
+			throw new IllegalArgumentException("StringUtil.createQueryFragment : required columnNames");
+		
+		List<String> contructedColumns = new ArrayList<String>();
+		for(String column : columnNames){
+			String consructedColumn = "";
+			if(!isDateRange)
+				consructedColumn =  (ConstantOperator.LIKE.equalsIgnoreCase(operator.trim()))? "UPPER("+column+") "+operator+" ? " : column+" "+operator+" ? ";
+			else
+				consructedColumn = column+" "+ConstantOperator.MORE_EQUAL+" ? AND "+column+" "+ConstantOperator.LESS_EQUAL+" ? ";
+			
+			contructedColumns.add(" ( " + consructedColumn + " ) ");
+		}
+		return StringUtils.join(contructedColumns, (conjuction == null) ? " " : conjuction.getValue() );
+	}
+	
+	public static String reIndexJpaParameter(String query){
+		StringBuffer buffer = new StringBuffer(query);		
+		int ptr = 1;
+		int count = 1;
+		while (true) {
+			ptr = buffer.indexOf("?", ptr) + 1;
+			if (ptr > 0) 
+				buffer.replace(ptr-1, ptr, "?" + count++);
+			else 
+				break;
+		}
+		
+		return buffer.toString();
+	}
+	
+	public static String getFileName(String path){
+		if(StringUtil.isEmpty(path))
+			return "";
+		
+		//String slicePath[] = path.split("\\.");
+		String slicePath[] = path.split("\\\\");
+		String returnPath = slicePath[slicePath.length-1];
+		
+		return returnPath;
+	}
+	
+	
+	
+}

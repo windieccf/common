@@ -1,0 +1,27 @@
+package com.nus.adqs.util;
+
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+
+
+public class ElasticUtil {
+	
+	private static ElasticUtil instance;
+	public static ElasticUtil getInstance(){
+		
+		if( ElasticUtil.instance  == null)
+			ElasticUtil.instance = new ElasticUtil();
+		
+		return ElasticUtil.instance;
+	} 
+	
+	
+	private TransportClient esClient;
+	public TransportClient getEsClient() {return esClient;}
+	
+	private ElasticUtil(){
+		esClient = new TransportClient();
+		esClient.addTransportAddress(new InetSocketTransportAddress("localhost", 9300));
+	}
+
+}

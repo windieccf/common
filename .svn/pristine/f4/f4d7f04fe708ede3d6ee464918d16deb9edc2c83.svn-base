@@ -1,0 +1,1553 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.2.3
+-- Dumped by pg_dump version 9.2.3
+-- Started on 2013-08-05 22:40:44
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- TOC entry 7 (class 2615 OID 16394)
+-- Name: common; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA common;
+
+
+ALTER SCHEMA common OWNER TO postgres;
+
+--
+-- TOC entry 8 (class 2615 OID 24633)
+-- Name: lexicon; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA lexicon;
+
+
+ALTER SCHEMA lexicon OWNER TO postgres;
+
+--
+-- TOC entry 201 (class 3079 OID 11727)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 2115 (class 0 OID 0)
+-- Dependencies: 201
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = common, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 193 (class 1259 OID 65632)
+-- Name: crawler_rule; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE crawler_rule (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    condition character varying(10),
+    crawler_type_id bigint,
+    rule_type character varying(10),
+    type character(1),
+    value character varying(500)
+);
+
+
+ALTER TABLE common.crawler_rule OWNER TO postgres;
+
+--
+-- TOC entry 194 (class 1259 OID 65640)
+-- Name: crawler_type; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE crawler_type (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    code character varying(30),
+    description character varying(100),
+    index_type_id bigint,
+    root_uri character varying(1000)
+);
+
+
+ALTER TABLE common.crawler_type OWNER TO postgres;
+
+--
+-- TOC entry 197 (class 1259 OID 73824)
+-- Name: document_archive; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE document_archive (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    uri character varying(500)
+);
+
+
+ALTER TABLE common.document_archive OWNER TO postgres;
+
+--
+-- TOC entry 191 (class 1259 OID 57440)
+-- Name: index_type; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE index_type (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    code character varying(30),
+    description character varying(100),
+    privilege_id bigint,
+    type character(1)
+);
+
+
+ALTER TABLE common.index_type OWNER TO postgres;
+
+--
+-- TOC entry 172 (class 1259 OID 16426)
+-- Name: menu_master; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE menu_master (
+    code character varying(10) NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    description character varying(255),
+    menu_type character(1) NOT NULL,
+    seq_no integer,
+    url_path character varying(255),
+    parent_menu_code character varying(10)
+);
+
+
+ALTER TABLE common.menu_master OWNER TO postgres;
+
+--
+-- TOC entry 185 (class 1259 OID 41040)
+-- Name: priv_perm; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE priv_perm (
+    permission_code character(1) NOT NULL,
+    privilege_id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1)
+);
+
+
+ALTER TABLE common.priv_perm OWNER TO postgres;
+
+--
+-- TOC entry 183 (class 1259 OID 41031)
+-- Name: privilege_type; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE privilege_type (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    code character varying(30),
+    description character varying(100)
+);
+
+
+ALTER TABLE common.privilege_type OWNER TO postgres;
+
+--
+-- TOC entry 181 (class 1259 OID 32839)
+-- Name: role_type; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE role_type (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    code character varying(30),
+    description character varying(100)
+);
+
+
+ALTER TABLE common.role_type OWNER TO postgres;
+
+--
+-- TOC entry 198 (class 1259 OID 73832)
+-- Name: scheduler; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE scheduler (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    code character varying(30),
+    description character varying(100),
+    last_run_time timestamp without time zone,
+    next_run_time timestamp without time zone,
+    recur bigint,
+    run_class_name character varying(255),
+    run_on_dates character varying(255),
+    run_on_days character varying(255),
+    run_on_months character varying(255),
+    run_on_weeks character varying(255),
+    task_status character(1),
+    type character varying(10)
+);
+
+
+ALTER TABLE common.scheduler OWNER TO postgres;
+
+--
+-- TOC entry 171 (class 1259 OID 16421)
+-- Name: test_table; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE test_table (
+    id bigint NOT NULL,
+    code character varying(10)
+);
+
+
+ALTER TABLE common.test_table OWNER TO postgres;
+
+--
+-- TOC entry 186 (class 1259 OID 49223)
+-- Name: user_access_matrix; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE user_access_matrix (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    perm_codes character varying(255),
+    priv_code character varying(30),
+    receiver_code character varying(30)
+);
+
+
+ALTER TABLE common.user_access_matrix OWNER TO postgres;
+
+--
+-- TOC entry 176 (class 1259 OID 24647)
+-- Name: user_account; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE user_account (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    password character varying(100),
+    username character varying(30)
+);
+
+
+ALTER TABLE common.user_account OWNER TO postgres;
+
+--
+-- TOC entry 180 (class 1259 OID 24671)
+-- Name: user_info; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE user_info (
+    id integer NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    alias character varying(255),
+    dob date,
+    email character varying(255),
+    full_name character varying(255),
+    user_account_id bigint
+);
+
+
+ALTER TABLE common.user_info OWNER TO postgres;
+
+--
+-- TOC entry 188 (class 1259 OID 57415)
+-- Name: user_role; Type: TABLE; Schema: common; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE user_role (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    role_id bigint,
+    user_account_id bigint
+);
+
+
+ALTER TABLE common.user_role OWNER TO postgres;
+
+SET search_path = lexicon, pg_catalog;
+
+--
+-- TOC entry 175 (class 1259 OID 24641)
+-- Name: overlap_conjuction; Type: TABLE; Schema: lexicon; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE overlap_conjuction (
+    id bigint NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    word character varying(10)
+);
+
+
+ALTER TABLE lexicon.overlap_conjuction OWNER TO postgres;
+
+--
+-- TOC entry 174 (class 1259 OID 24639)
+-- Name: overlap_conjuction_id_seq; Type: SEQUENCE; Schema: lexicon; Owner: postgres
+--
+
+CREATE SEQUENCE overlap_conjuction_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE lexicon.overlap_conjuction_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 2116 (class 0 OID 0)
+-- Dependencies: 174
+-- Name: overlap_conjuction_id_seq; Type: SEQUENCE OWNED BY; Schema: lexicon; Owner: postgres
+--
+
+ALTER SEQUENCE overlap_conjuction_id_seq OWNED BY overlap_conjuction.id;
+
+
+SET search_path = public, pg_catalog;
+
+--
+-- TOC entry 195 (class 1259 OID 65660)
+-- Name: crawlerruleseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE crawlerruleseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.crawlerruleseq OWNER TO postgres;
+
+--
+-- TOC entry 196 (class 1259 OID 65662)
+-- Name: crawlerseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE crawlerseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.crawlerseq OWNER TO postgres;
+
+--
+-- TOC entry 199 (class 1259 OID 73842)
+-- Name: docarchiveseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE docarchiveseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.docarchiveseq OWNER TO postgres;
+
+--
+-- TOC entry 192 (class 1259 OID 57452)
+-- Name: indexseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE indexseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.indexseq OWNER TO postgres;
+
+--
+-- TOC entry 173 (class 1259 OID 24631)
+-- Name: overlapconjseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE overlapconjseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.overlapconjseq OWNER TO postgres;
+
+--
+-- TOC entry 190 (class 1259 OID 57432)
+-- Name: permissionaccess; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE permissionaccess (
+    id bigint NOT NULL,
+    permissioncodes character varying(255),
+    privilegecode character varying(255),
+    receivercode character varying(255)
+);
+
+
+ALTER TABLE public.permissionaccess OWNER TO postgres;
+
+--
+-- TOC entry 170 (class 1259 OID 16395)
+-- Name: play_evolutions; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE play_evolutions (
+    id integer NOT NULL,
+    hash character varying(255) NOT NULL,
+    applied_at timestamp without time zone NOT NULL,
+    apply_script text,
+    revert_script text,
+    state character varying(255),
+    last_problem text
+);
+
+
+ALTER TABLE public.play_evolutions OWNER TO postgres;
+
+--
+-- TOC entry 184 (class 1259 OID 41038)
+-- Name: privilegeseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE privilegeseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.privilegeseq OWNER TO postgres;
+
+--
+-- TOC entry 182 (class 1259 OID 32846)
+-- Name: roleseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE roleseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.roleseq OWNER TO postgres;
+
+--
+-- TOC entry 200 (class 1259 OID 73844)
+-- Name: schedulerseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE schedulerseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.schedulerseq OWNER TO postgres;
+
+--
+-- TOC entry 187 (class 1259 OID 49228)
+-- Name: uamseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE uamseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.uamseq OWNER TO postgres;
+
+--
+-- TOC entry 177 (class 1259 OID 24654)
+-- Name: user_info; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE user_info (
+    id integer NOT NULL,
+    created_by_id bigint,
+    created_datetime timestamp without time zone,
+    modified_by_id bigint,
+    modified_datetime timestamp without time zone,
+    status character(1),
+    alias character varying(255),
+    dob date,
+    email character varying(255),
+    full_name character varying(255),
+    user_account_id bigint
+);
+
+
+ALTER TABLE public.user_info OWNER TO postgres;
+
+--
+-- TOC entry 178 (class 1259 OID 24662)
+-- Name: useraccountseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE useraccountseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.useraccountseq OWNER TO postgres;
+
+--
+-- TOC entry 179 (class 1259 OID 24664)
+-- Name: userinfoseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE userinfoseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.userinfoseq OWNER TO postgres;
+
+--
+-- TOC entry 189 (class 1259 OID 57430)
+-- Name: userroleseq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE userroleseq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.userroleseq OWNER TO postgres;
+
+SET search_path = lexicon, pg_catalog;
+
+--
+-- TOC entry 2019 (class 2604 OID 24644)
+-- Name: id; Type: DEFAULT; Schema: lexicon; Owner: postgres
+--
+
+ALTER TABLE ONLY overlap_conjuction ALTER COLUMN id SET DEFAULT nextval('overlap_conjuction_id_seq'::regclass);
+
+
+SET search_path = common, pg_catalog;
+
+--
+-- TOC entry 2100 (class 0 OID 65632)
+-- Dependencies: 193
+-- Data for Name: crawler_rule; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY crawler_rule (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, condition, crawler_type_id, rule_type, type, value) FROM stdin;
+1	\N	2013-07-19 22:41:25.398	\N	2013-07-19 22:41:25.398	A	W	\N	R	F	\N
+2	\N	2013-07-19 22:41:25.408	\N	2013-07-19 22:41:25.408	A	W	\N	R	F	\N
+3	\N	2013-07-19 22:41:25.409	\N	2013-07-19 22:41:25.409	A	W	\N	R	F	\N
+4	\N	2013-07-19 22:50:53.132	\N	2013-07-19 22:50:53.132	A	W	\N	R	F	\N
+5	\N	2013-07-19 22:50:53.14	\N	2013-07-19 22:50:53.14	A	W	\N	R	F	\N
+6	\N	2013-07-19 22:50:53.141	\N	2013-07-19 22:50:53.141	A	W	\N	R	F	\N
+12	\N	2013-08-04 20:03:22.129	\N	2013-08-04 20:03:22.129	A	E	1	A	F	doc
+13	\N	2013-08-04 20:03:22.169	\N	2013-08-04 20:03:22.169	A	E	1	A	F	docx
+14	\N	2013-08-04 20:03:22.17	\N	2013-08-04 20:03:22.17	A	E	1	A	F	pdf
+15	\N	2013-08-04 20:03:22.17	\N	2013-08-04 20:03:22.17	A	C	1	R	P	private
+16	\N	2013-08-04 20:05:53.86	\N	2013-08-04 20:05:53.86	A	C	2	A	P	http://www.unisim.edu.sg
+\.
+
+
+--
+-- TOC entry 2101 (class 0 OID 65640)
+-- Dependencies: 194
+-- Data for Name: crawler_type; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY crawler_type (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, code, description, index_type_id, root_uri) FROM stdin;
+1	\N	2013-07-19 22:41:22.065	\N	2013-07-19 22:41:22.065	A	CRF_PUB	Crawler Document Public	2	thepath
+2	\N	2013-08-04 20:05:53.82	\N	2013-08-04 20:05:53.82	A	CRW_PUB	Web Crawler Public	1	http://www.unisim.edu.sg
+\.
+
+
+--
+-- TOC entry 2104 (class 0 OID 73824)
+-- Dependencies: 197
+-- Data for Name: document_archive; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY document_archive (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, uri) FROM stdin;
+927	\N	2013-08-04 22:21:34.915	\N	2013-08-04 22:21:34.915	A	http://www.unisim.edu.sg/Eservice/Public/ViewCP/ViewCP.aspx?progcd=PYSS&viewtype=pdf
+\.
+
+
+--
+-- TOC entry 2098 (class 0 OID 57440)
+-- Dependencies: 191
+-- Data for Name: index_type; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY index_type (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, code, description, privilege_id, type) FROM stdin;
+2	\N	2013-07-18 09:43:37.862	\N	2013-07-18 09:43:37.862	A	filepub	Public access to file	8	D
+3	\N	2013-07-18 09:43:51.415	\N	2013-07-18 09:43:51.415	A	filepriv	Private access to file	7	D
+1	\N	2013-07-17 11:31:08.626	\N	2013-07-18 09:42:34.486	A	webpub	Public Web Index	6	W
+\.
+
+
+--
+-- TOC entry 2079 (class 0 OID 16426)
+-- Dependencies: 172
+-- Data for Name: menu_master; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY menu_master (code, created_by_id, created_datetime, modified_by_id, modified_datetime, status, description, menu_type, seq_no, url_path, parent_menu_code) FROM stdin;
+ROOT_01	\N	\N	\N	\N	A	Root Menu	G	1	\N	\N
+SC_GR_STP	\N	\N	\N	\N	A	Setup	G	2	\N	ROOT_01
+SC_STP_WEB	\N	\N	\N	\N	A	Web Search Setup	I	3	/setup/search/web	SC_GR_STP
+SC_STP_SCH	\N	\N	\N	\N	A	Schedule Time	I	1	/setup/search/schedule	SC_GR_STP
+SC_STP_PRI	\N	\N	\N	\N	A	Privilege	I	4	/setup/search/privilege	SC_GR_STP
+SC_STP_FLS	\N	\N	\N	\N	A	File System Setup	I	2	/setup/search/filesystem	SC_GR_STP
+SC_HOME	\N	\N	\N	\N	\N	Home	I	1	/	ROOT_01
+ST_GR_SEC	\N	\N	\N	\N	A	Security	G	1	\N	SC_GR_STP
+MT_CMN_USR	\N	\N	\N	\N	A	User Maintenance	I	5	/setup/user/list	ST_GR_SEC
+MT_CMN_PRM	\N	\N	\N	\N	A	Permission Setup	I	8	/setup/permissionByPrivilege/list	ST_GR_SEC
+MT_CMN_PRV	\N	\N	\N	\N	A	Privilege Setup	I	7	/setup/privilege/list	ST_GR_SEC
+MT_CMN_ROL	\N	\N	\N	\N	A	Role Setup	I	6	/setup/role/list	ST_GR_SEC
+ST_GR_SCG	\N	\N	\N	\N	A	Search	G	2	\N	SC_GR_STP
+MT_CMN_IDX	\N	\N	\N	\N	A	Index	I	1	/setup/index/list	ST_GR_SCG
+MT_CMN_CRW	\N	\N	\N	\N	A	Crawler	I	2	/setup/crawler/list	ST_GR_SCG
+MT_CMN_SCH	\N	\N	\N	\N	A	Scheduler	I	10	/setup/scheduler/list	SC_GR_STP
+\.
+
+
+--
+-- TOC entry 2092 (class 0 OID 41040)
+-- Dependencies: 185
+-- Data for Name: priv_perm; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY priv_perm (permission_code, privilege_id, created_by_id, created_datetime, modified_by_id, modified_datetime, status) FROM stdin;
+I	1	\N	2013-07-05 17:28:49.319	\N	2013-07-05 17:28:49.319	A
+D	1	\N	2013-07-05 17:34:29.71	\N	2013-07-05 17:34:29.71	A
+C	1	\N	2013-07-05 17:35:02.893	\N	2013-07-05 17:35:02.893	A
+R	1	\N	2013-07-05 17:35:02.893	\N	2013-07-05 17:35:02.893	A
+U	1	\N	2013-07-05 17:35:02.893	\N	2013-07-05 17:35:02.893	A
+C	2	\N	2013-07-14 21:44:07.757	\N	2013-07-14 21:44:07.757	A
+R	2	\N	2013-07-14 21:44:07.757	\N	2013-07-14 21:44:07.757	A
+U	2	\N	2013-07-14 21:44:07.757	\N	2013-07-14 21:44:07.757	A
+D	2	\N	2013-07-14 21:44:07.757	\N	2013-07-14 21:44:07.757	A
+C	3	\N	2013-07-14 21:44:33.944	\N	2013-07-14 21:44:33.944	A
+R	3	\N	2013-07-14 21:44:33.944	\N	2013-07-14 21:44:33.944	A
+U	3	\N	2013-07-14 21:44:33.944	\N	2013-07-14 21:44:33.944	A
+D	3	\N	2013-07-14 21:44:33.944	\N	2013-07-14 21:44:33.944	A
+C	4	\N	2013-07-14 21:45:03.089	\N	2013-07-14 21:45:03.089	A
+R	4	\N	2013-07-14 21:45:03.089	\N	2013-07-14 21:45:03.089	A
+U	4	\N	2013-07-14 21:45:03.089	\N	2013-07-14 21:45:03.089	A
+D	4	\N	2013-07-14 21:45:03.089	\N	2013-07-14 21:45:03.089	A
+C	5	\N	2013-07-17 11:25:53.154	\N	2013-07-17 11:25:53.154	A
+R	5	\N	2013-07-17 11:25:53.154	\N	2013-07-17 11:25:53.154	A
+U	5	\N	2013-07-17 11:25:53.154	\N	2013-07-17 11:25:53.154	A
+D	5	\N	2013-07-17 11:25:53.154	\N	2013-07-17 11:25:53.154	A
+I	6	\N	2013-07-18 09:40:59.627	\N	2013-07-18 09:40:59.627	A
+I	7	\N	2013-07-18 09:41:21.483	\N	2013-07-18 09:41:21.483	A
+I	8	\N	2013-07-18 09:42:14.158	\N	2013-07-18 09:42:14.158	A
+C	9	\N	2013-07-19 14:10:02.037	\N	2013-07-19 14:10:02.037	A
+R	9	\N	2013-07-19 14:10:02.037	\N	2013-07-19 14:10:02.037	A
+U	9	\N	2013-07-19 14:10:02.037	\N	2013-07-19 14:10:02.037	A
+D	9	\N	2013-07-19 14:10:02.037	\N	2013-07-19 14:10:02.037	A
+C	10	\N	2013-08-04 19:31:48.826	\N	2013-08-04 19:31:48.826	A
+R	10	\N	2013-08-04 19:31:48.826	\N	2013-08-04 19:31:48.826	A
+U	10	\N	2013-08-04 19:31:48.826	\N	2013-08-04 19:31:48.826	A
+D	10	\N	2013-08-04 19:31:48.826	\N	2013-08-04 19:31:48.826	A
+\.
+
+
+--
+-- TOC entry 2090 (class 0 OID 41031)
+-- Dependencies: 183
+-- Data for Name: privilege_type; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY privilege_type (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, code, description) FROM stdin;
+1	\N	2013-07-05 10:25:36.886	\N	2013-07-05 10:26:41.745	A	MT_CMN_USR	User Maintenance
+2	\N	2013-07-14 21:44:07.735	\N	2013-07-14 21:44:07.735	A	MT_CMN_ROL	Role Setup
+3	\N	2013-07-14 21:44:33.943	\N	2013-07-14 21:44:33.943	A	MT_CMN_PRV	Privilege Setup
+4	\N	2013-07-14 21:45:03.088	\N	2013-07-14 21:45:03.088	A	MT_CMN_PRM	Permission by privilege
+5	\N	2013-07-17 11:25:53.134	\N	2013-07-17 11:25:53.134	A	MT_CMN_IDX	Index Type
+6	\N	2013-07-18 09:40:59.581	\N	2013-07-18 09:40:59.581	A	OP_IDX_WEB	Access for search engine Web based
+7	\N	2013-07-18 09:41:21.482	\N	2013-07-18 09:41:21.482	A	OP_IDX_FILE_P	Access for search engine file private
+8	\N	2013-07-18 09:42:14.157	\N	2013-07-18 09:42:14.157	A	OP_IDX_FILE	Access for search engine file public
+9	\N	2013-07-19 14:10:02.019	\N	2013-07-19 14:10:02.019	A	MT_CMN_CRW	Crawler Setup
+10	\N	2013-08-04 19:31:48.744	\N	2013-08-04 19:31:48.744	A	MT_CMN_SCH	Scheduler Setup
+\.
+
+
+--
+-- TOC entry 2088 (class 0 OID 32839)
+-- Dependencies: 181
+-- Data for Name: role_type; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY role_type (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, code, description) FROM stdin;
+3	\N	2013-06-25 16:37:55.792	\N	2013-06-25 16:37:55.792	A	admin	Admin role
+4	\N	2013-06-25 16:38:01.739	\N	2013-06-25 16:38:01.739	A	user	normal user
+5	\N	2013-06-25 16:38:09.869	\N	2013-06-25 16:38:09.869	A	SPR	Super User
+6	\N	2013-07-02 11:33:35.813	\N	2013-07-02 11:33:35.813	A	TT003	test 03
+7	\N	2013-07-02 11:33:46.276	\N	2013-07-02 11:33:46.276	A	TT04	Test04
+8	\N	2013-07-02 11:33:52.927	\N	2013-07-02 11:33:52.927	A	TT05	Test 05
+9	\N	2013-07-02 11:33:58.99	\N	2013-07-02 11:33:58.99	A	TT06	Test 06
+11	\N	\N	\N	2013-07-03 11:11:46.994	A	TT08	Test 08
+12	\N	\N	\N	2013-07-03 11:15:16.339	A	TT09	Test 009
+10	\N	\N	\N	2013-07-03 12:11:20.346	A	TT07	Test 007
+2	\N	\N	\N	2013-07-03 12:34:34.922	A	TT002	TEST 002
+1	\N	2013-06-25 16:37:39.394	\N	2013-07-05 09:53:28.732	A	test	001
+14	\N	2013-07-19 22:38:33.098	\N	2013-07-19 22:38:33.098	A	T	Test
+13	\N	2013-07-14 21:54:03.525	\N	2013-08-05 21:15:24.717	A	SUP_ADM	Super Admin
+\.
+
+
+--
+-- TOC entry 2105 (class 0 OID 73832)
+-- Dependencies: 198
+-- Data for Name: scheduler; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY scheduler (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, code, description, last_run_time, next_run_time, recur, run_class_name, run_on_dates, run_on_days, run_on_months, run_on_weeks, task_status, type) FROM stdin;
+1	\N	\N	\N	\N	D	CRAWL_FS	Crawler File System Public	\N	\N	1	com.nus.adqs.job.BatchJobCrawlerDocumentPublic	\N	\N	\N	\N	P	\N
+2	\N	\N	\N	2013-08-04 22:21:29.75	A	CRAWL_WB	Crawler Web Public	2013-08-04 22:21:29.74	\N	1	com.nus.adqs.job.BatchJobCrawlerWebPublic	\N	\N	\N	\N	R	\N
+3	\N	\N	\N	\N	D	CRAWL_FSP	Crawler File Private	\N	\N	1	com.nus.adqs.job.BatchJobCrawlerDocumentPrivate	\N	\N	\N	\N	P	\N
+\.
+
+
+--
+-- TOC entry 2078 (class 0 OID 16421)
+-- Dependencies: 171
+-- Data for Name: test_table; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY test_table (id, code) FROM stdin;
+1	001
+2	002
+3	003
+\.
+
+
+--
+-- TOC entry 2093 (class 0 OID 49223)
+-- Dependencies: 186
+-- Data for Name: user_access_matrix; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY user_access_matrix (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, perm_codes, priv_code, receiver_code) FROM stdin;
+9	\N	2013-07-09 21:44:35.024	\N	2013-07-09 21:44:35.024	A		MT_CMN_USR	TT07
+10	\N	2013-07-09 21:44:35.024	\N	2013-07-09 21:44:35.024	A		MT_CMN_USR	TT08
+11	\N	2013-07-09 21:44:35.024	\N	2013-07-09 21:44:35.024	A		MT_CMN_USR	TT09
+12	\N	2013-07-09 21:44:35.025	\N	2013-07-09 21:44:35.025	A		MT_CMN_USR	user
+66	\N	2013-07-19 14:10:22.237	\N	2013-07-19 14:10:22.237	A		MT_CMN_CRW	admin
+67	\N	2013-07-19 14:10:22.27	\N	2013-07-19 14:10:22.27	A		MT_CMN_CRW	SPR
+68	\N	2013-07-19 14:10:22.294	\N	2013-07-19 14:10:22.294	A	C,R,U,D	MT_CMN_CRW	SUP_ADM
+69	\N	2013-07-19 14:10:22.296	\N	2013-07-19 14:10:22.296	A		MT_CMN_CRW	test
+70	\N	2013-07-19 14:10:22.296	\N	2013-07-19 14:10:22.296	A		MT_CMN_CRW	TT002
+71	\N	2013-07-19 14:10:22.297	\N	2013-07-19 14:10:22.297	A		MT_CMN_CRW	TT003
+72	\N	2013-07-19 14:10:22.298	\N	2013-07-19 14:10:22.298	A		MT_CMN_CRW	TT04
+73	\N	2013-07-19 14:10:22.299	\N	2013-07-19 14:10:22.299	A		MT_CMN_CRW	TT05
+74	\N	2013-07-19 14:10:22.3	\N	2013-07-19 14:10:22.3	A		MT_CMN_CRW	TT06
+75	\N	2013-07-19 14:10:22.3	\N	2013-07-19 14:10:22.3	A		MT_CMN_CRW	TT07
+76	\N	2013-07-19 14:10:22.302	\N	2013-07-19 14:10:22.302	A		MT_CMN_CRW	TT08
+77	\N	2013-07-19 14:10:22.303	\N	2013-07-19 14:10:22.303	A		MT_CMN_CRW	TT09
+78	\N	2013-07-19 14:10:22.303	\N	2013-07-19 14:10:22.303	A		MT_CMN_CRW	user
+79	\N	2013-07-19 14:10:34.396	\N	2013-07-19 14:10:34.396	A		OP_IDX_WEB	admin
+80	\N	2013-07-19 14:10:34.397	\N	2013-07-19 14:10:34.397	A		OP_IDX_WEB	SPR
+5	\N	2013-07-09 21:44:35.022	\N	2013-07-10 15:32:59.142	A		MT_CMN_USR	TT003
+6	\N	2013-07-09 21:44:35.023	\N	2013-07-10 15:32:59.142	A		MT_CMN_USR	TT04
+7	\N	2013-07-09 21:44:35.023	\N	2013-07-10 15:32:59.142	A		MT_CMN_USR	TT05
+81	\N	2013-07-19 14:10:34.43	\N	2013-07-19 14:10:34.43	A	I	OP_IDX_WEB	SUP_ADM
+82	\N	2013-07-19 14:10:34.431	\N	2013-07-19 14:10:34.431	A		OP_IDX_WEB	test
+83	\N	2013-07-19 14:10:34.432	\N	2013-07-19 14:10:34.432	A		OP_IDX_WEB	TT002
+84	\N	2013-07-19 14:10:34.433	\N	2013-07-19 14:10:34.433	A		OP_IDX_WEB	TT003
+1	\N	2013-07-09 21:44:34.993	\N	2013-07-10 15:35:39.009	A	C,U,D	MT_CMN_USR	admin
+8	\N	2013-07-09 21:44:35.023	\N	2013-07-10 15:35:48.722	A	C,R,U,D,I	MT_CMN_USR	TT06
+2	\N	2013-07-09 21:44:35.019	\N	2013-07-10 15:36:02.576	A	C,R,U,D,I	MT_CMN_USR	SPR
+3	\N	2013-07-09 21:44:35.02	\N	2013-07-10 15:36:18.006	A	C,R,U,D,I	MT_CMN_USR	test
+4	\N	2013-07-09 21:44:35.022	\N	2013-07-10 15:36:59.306	A	C,R,U,D,I	MT_CMN_USR	TT002
+13	\N	2013-07-14 21:54:33.037	\N	2013-07-14 21:54:33.037	A	C,R,U,D,I	MT_CMN_USR	SUP_ADM
+14	\N	2013-07-14 21:54:49.457	\N	2013-07-14 21:54:49.457	A		MT_CMN_ROL	admin
+15	\N	2013-07-14 21:54:49.458	\N	2013-07-14 21:54:49.458	A		MT_CMN_ROL	SPR
+16	\N	2013-07-14 21:54:49.458	\N	2013-07-14 21:54:49.458	A	C,R,U,D	MT_CMN_ROL	SUP_ADM
+17	\N	2013-07-14 21:54:49.458	\N	2013-07-14 21:54:49.458	A		MT_CMN_ROL	test
+18	\N	2013-07-14 21:54:49.459	\N	2013-07-14 21:54:49.459	A		MT_CMN_ROL	TT002
+19	\N	2013-07-14 21:54:49.459	\N	2013-07-14 21:54:49.459	A		MT_CMN_ROL	TT003
+20	\N	2013-07-14 21:54:49.459	\N	2013-07-14 21:54:49.459	A		MT_CMN_ROL	TT04
+21	\N	2013-07-14 21:54:49.46	\N	2013-07-14 21:54:49.46	A		MT_CMN_ROL	TT05
+22	\N	2013-07-14 21:54:49.46	\N	2013-07-14 21:54:49.46	A		MT_CMN_ROL	TT06
+23	\N	2013-07-14 21:54:49.46	\N	2013-07-14 21:54:49.46	A		MT_CMN_ROL	TT07
+24	\N	2013-07-14 21:54:49.461	\N	2013-07-14 21:54:49.461	A		MT_CMN_ROL	TT08
+25	\N	2013-07-14 21:54:49.461	\N	2013-07-14 21:54:49.461	A		MT_CMN_ROL	TT09
+26	\N	2013-07-14 21:54:49.462	\N	2013-07-14 21:54:49.462	A		MT_CMN_ROL	user
+27	\N	2013-07-14 21:54:59.672	\N	2013-07-14 21:54:59.672	A		MT_CMN_PRV	admin
+28	\N	2013-07-14 21:54:59.672	\N	2013-07-14 21:54:59.672	A		MT_CMN_PRV	SPR
+29	\N	2013-07-14 21:54:59.672	\N	2013-07-14 21:54:59.672	A	C,R,U,D	MT_CMN_PRV	SUP_ADM
+30	\N	2013-07-14 21:54:59.673	\N	2013-07-14 21:54:59.673	A		MT_CMN_PRV	test
+31	\N	2013-07-14 21:54:59.673	\N	2013-07-14 21:54:59.673	A		MT_CMN_PRV	TT002
+32	\N	2013-07-14 21:54:59.673	\N	2013-07-14 21:54:59.673	A		MT_CMN_PRV	TT003
+33	\N	2013-07-14 21:54:59.673	\N	2013-07-14 21:54:59.673	A		MT_CMN_PRV	TT04
+34	\N	2013-07-14 21:54:59.673	\N	2013-07-14 21:54:59.673	A		MT_CMN_PRV	TT05
+35	\N	2013-07-14 21:54:59.674	\N	2013-07-14 21:54:59.674	A		MT_CMN_PRV	TT06
+36	\N	2013-07-14 21:54:59.674	\N	2013-07-14 21:54:59.674	A		MT_CMN_PRV	TT07
+37	\N	2013-07-14 21:54:59.674	\N	2013-07-14 21:54:59.674	A		MT_CMN_PRV	TT08
+38	\N	2013-07-14 21:54:59.675	\N	2013-07-14 21:54:59.675	A		MT_CMN_PRV	TT09
+39	\N	2013-07-14 21:54:59.675	\N	2013-07-14 21:54:59.675	A		MT_CMN_PRV	user
+40	\N	2013-07-14 21:55:09.943	\N	2013-07-14 21:55:09.943	A		MT_CMN_PRM	admin
+41	\N	2013-07-14 21:55:09.944	\N	2013-07-14 21:55:09.944	A		MT_CMN_PRM	SPR
+42	\N	2013-07-14 21:55:09.944	\N	2013-07-14 21:55:09.944	A	C,R,U,D	MT_CMN_PRM	SUP_ADM
+43	\N	2013-07-14 21:55:09.945	\N	2013-07-14 21:55:09.945	A		MT_CMN_PRM	test
+44	\N	2013-07-14 21:55:09.945	\N	2013-07-14 21:55:09.945	A		MT_CMN_PRM	TT002
+45	\N	2013-07-14 21:55:09.945	\N	2013-07-14 21:55:09.945	A		MT_CMN_PRM	TT003
+46	\N	2013-07-14 21:55:09.946	\N	2013-07-14 21:55:09.946	A		MT_CMN_PRM	TT04
+47	\N	2013-07-14 21:55:09.946	\N	2013-07-14 21:55:09.946	A		MT_CMN_PRM	TT05
+48	\N	2013-07-14 21:55:09.947	\N	2013-07-14 21:55:09.947	A		MT_CMN_PRM	TT06
+49	\N	2013-07-14 21:55:09.947	\N	2013-07-14 21:55:09.947	A		MT_CMN_PRM	TT07
+50	\N	2013-07-14 21:55:09.947	\N	2013-07-14 21:55:09.947	A		MT_CMN_PRM	TT08
+51	\N	2013-07-14 21:55:09.948	\N	2013-07-14 21:55:09.948	A		MT_CMN_PRM	TT09
+52	\N	2013-07-14 21:55:09.948	\N	2013-07-14 21:55:09.948	A		MT_CMN_PRM	user
+53	\N	2013-07-17 11:26:15.256	\N	2013-07-17 11:26:15.256	A		MT_CMN_IDX	admin
+54	\N	2013-07-17 11:26:15.285	\N	2013-07-17 11:26:15.285	A		MT_CMN_IDX	SPR
+55	\N	2013-07-17 11:26:15.29	\N	2013-07-17 11:26:15.29	A	C,R,U,D	MT_CMN_IDX	SUP_ADM
+56	\N	2013-07-17 11:26:15.291	\N	2013-07-17 11:26:15.291	A		MT_CMN_IDX	test
+57	\N	2013-07-17 11:26:15.291	\N	2013-07-17 11:26:15.291	A		MT_CMN_IDX	TT002
+58	\N	2013-07-17 11:26:15.291	\N	2013-07-17 11:26:15.291	A		MT_CMN_IDX	TT003
+59	\N	2013-07-17 11:26:15.292	\N	2013-07-17 11:26:15.292	A		MT_CMN_IDX	TT04
+60	\N	2013-07-17 11:26:15.292	\N	2013-07-17 11:26:15.292	A		MT_CMN_IDX	TT05
+61	\N	2013-07-17 11:26:15.292	\N	2013-07-17 11:26:15.292	A		MT_CMN_IDX	TT06
+62	\N	2013-07-17 11:26:15.293	\N	2013-07-17 11:26:15.293	A		MT_CMN_IDX	TT07
+63	\N	2013-07-17 11:26:15.293	\N	2013-07-17 11:26:15.293	A		MT_CMN_IDX	TT08
+64	\N	2013-07-17 11:26:15.293	\N	2013-07-17 11:26:15.293	A		MT_CMN_IDX	TT09
+65	\N	2013-07-17 11:26:15.294	\N	2013-07-17 11:26:15.294	A		MT_CMN_IDX	user
+85	\N	2013-07-19 14:10:34.433	\N	2013-07-19 14:10:34.433	A		OP_IDX_WEB	TT04
+86	\N	2013-07-19 14:10:34.434	\N	2013-07-19 14:10:34.434	A		OP_IDX_WEB	TT05
+87	\N	2013-07-19 14:10:34.435	\N	2013-07-19 14:10:34.435	A		OP_IDX_WEB	TT06
+88	\N	2013-07-19 14:10:34.436	\N	2013-07-19 14:10:34.436	A		OP_IDX_WEB	TT07
+89	\N	2013-07-19 14:10:34.436	\N	2013-07-19 14:10:34.436	A		OP_IDX_WEB	TT08
+90	\N	2013-07-19 14:10:34.437	\N	2013-07-19 14:10:34.437	A		OP_IDX_WEB	TT09
+91	\N	2013-07-19 14:10:34.438	\N	2013-07-19 14:10:34.438	A		OP_IDX_WEB	user
+92	\N	2013-07-19 14:10:42.602	\N	2013-07-19 14:10:42.602	A		OP_IDX_FILE_P	admin
+93	\N	2013-07-19 14:10:42.603	\N	2013-07-19 14:10:42.603	A		OP_IDX_FILE_P	SPR
+94	\N	2013-07-19 14:10:42.603	\N	2013-07-19 14:10:42.603	A	I	OP_IDX_FILE_P	SUP_ADM
+95	\N	2013-07-19 14:10:42.604	\N	2013-07-19 14:10:42.604	A		OP_IDX_FILE_P	test
+96	\N	2013-07-19 14:10:42.604	\N	2013-07-19 14:10:42.604	A		OP_IDX_FILE_P	TT002
+97	\N	2013-07-19 14:10:42.605	\N	2013-07-19 14:10:42.605	A		OP_IDX_FILE_P	TT003
+98	\N	2013-07-19 14:10:42.606	\N	2013-07-19 14:10:42.606	A		OP_IDX_FILE_P	TT04
+99	\N	2013-07-19 14:10:42.606	\N	2013-07-19 14:10:42.606	A		OP_IDX_FILE_P	TT05
+100	\N	2013-07-19 14:10:42.607	\N	2013-07-19 14:10:42.607	A		OP_IDX_FILE_P	TT06
+101	\N	2013-07-19 14:10:42.608	\N	2013-07-19 14:10:42.608	A		OP_IDX_FILE_P	TT07
+102	\N	2013-07-19 14:10:42.608	\N	2013-07-19 14:10:42.608	A		OP_IDX_FILE_P	TT08
+103	\N	2013-07-19 14:10:42.609	\N	2013-07-19 14:10:42.609	A		OP_IDX_FILE_P	TT09
+104	\N	2013-07-19 14:10:42.61	\N	2013-07-19 14:10:42.61	A		OP_IDX_FILE_P	user
+105	\N	2013-07-19 14:10:49.508	\N	2013-07-19 14:10:49.508	A		OP_IDX_FILE	admin
+106	\N	2013-07-19 14:10:49.51	\N	2013-07-19 14:10:49.51	A		OP_IDX_FILE	SPR
+107	\N	2013-07-19 14:10:49.511	\N	2013-07-19 14:10:49.511	A	I	OP_IDX_FILE	SUP_ADM
+108	\N	2013-07-19 14:10:49.512	\N	2013-07-19 14:10:49.512	A		OP_IDX_FILE	test
+109	\N	2013-07-19 14:10:49.513	\N	2013-07-19 14:10:49.513	A		OP_IDX_FILE	TT002
+110	\N	2013-07-19 14:10:49.514	\N	2013-07-19 14:10:49.514	A		OP_IDX_FILE	TT003
+111	\N	2013-07-19 14:10:49.514	\N	2013-07-19 14:10:49.514	A		OP_IDX_FILE	TT04
+112	\N	2013-07-19 14:10:49.515	\N	2013-07-19 14:10:49.515	A		OP_IDX_FILE	TT05
+113	\N	2013-07-19 14:10:49.516	\N	2013-07-19 14:10:49.516	A		OP_IDX_FILE	TT06
+114	\N	2013-07-19 14:10:49.517	\N	2013-07-19 14:10:49.517	A		OP_IDX_FILE	TT07
+115	\N	2013-07-19 14:10:49.518	\N	2013-07-19 14:10:49.518	A		OP_IDX_FILE	TT08
+116	\N	2013-07-19 14:10:49.518	\N	2013-07-19 14:10:49.518	A		OP_IDX_FILE	TT09
+117	\N	2013-07-19 14:10:49.519	\N	2013-07-19 14:10:49.519	A		OP_IDX_FILE	user
+118	\N	2013-08-04 19:32:05.44	\N	2013-08-04 19:32:05.44	A		MT_CMN_SCH	admin
+119	\N	2013-08-04 19:32:05.449	\N	2013-08-04 19:32:05.449	A		MT_CMN_SCH	SPR
+120	\N	2013-08-04 19:32:05.468	\N	2013-08-04 19:32:05.468	A	C,R,U,D	MT_CMN_SCH	SUP_ADM
+121	\N	2013-08-04 19:32:05.469	\N	2013-08-04 19:32:05.469	A		MT_CMN_SCH	T
+122	\N	2013-08-04 19:32:05.469	\N	2013-08-04 19:32:05.469	A		MT_CMN_SCH	test
+123	\N	2013-08-04 19:32:05.469	\N	2013-08-04 19:32:05.469	A		MT_CMN_SCH	TT002
+124	\N	2013-08-04 19:32:05.47	\N	2013-08-04 19:32:05.47	A		MT_CMN_SCH	TT003
+125	\N	2013-08-04 19:32:05.47	\N	2013-08-04 19:32:05.47	A		MT_CMN_SCH	TT04
+126	\N	2013-08-04 19:32:05.47	\N	2013-08-04 19:32:05.47	A		MT_CMN_SCH	TT05
+127	\N	2013-08-04 19:32:05.471	\N	2013-08-04 19:32:05.471	A		MT_CMN_SCH	TT06
+128	\N	2013-08-04 19:32:05.471	\N	2013-08-04 19:32:05.471	A		MT_CMN_SCH	TT07
+129	\N	2013-08-04 19:32:05.471	\N	2013-08-04 19:32:05.471	A		MT_CMN_SCH	TT08
+130	\N	2013-08-04 19:32:05.472	\N	2013-08-04 19:32:05.472	A		MT_CMN_SCH	TT09
+131	\N	2013-08-04 19:32:05.472	\N	2013-08-04 19:32:05.472	A		MT_CMN_SCH	user
+\.
+
+
+--
+-- TOC entry 2083 (class 0 OID 24647)
+-- Dependencies: 176
+-- Data for Name: user_account; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY user_account (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, password, username) FROM stdin;
+3	\N	2013-05-23 17:14:18.475	\N	2013-08-05 21:27:17.969	A	password	admin
+\.
+
+
+--
+-- TOC entry 2087 (class 0 OID 24671)
+-- Dependencies: 180
+-- Data for Name: user_info; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY user_info (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, alias, dob, email, full_name, user_account_id) FROM stdin;
+3	\N	2013-05-23 17:14:18.483	\N	2013-08-05 21:27:17.969	A	\N	\N	hello	hello world	3
+\.
+
+
+--
+-- TOC entry 2095 (class 0 OID 57415)
+-- Dependencies: 188
+-- Data for Name: user_role; Type: TABLE DATA; Schema: common; Owner: postgres
+--
+
+COPY user_role (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, role_id, user_account_id) FROM stdin;
+12	\N	2013-07-14 21:54:15.781	\N	2013-07-14 21:54:15.781	A	13	3
+\.
+
+
+SET search_path = lexicon, pg_catalog;
+
+--
+-- TOC entry 2082 (class 0 OID 24641)
+-- Dependencies: 175
+-- Data for Name: overlap_conjuction; Type: TABLE DATA; Schema: lexicon; Owner: postgres
+--
+
+COPY overlap_conjuction (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, word) FROM stdin;
+1	\N	\N	\N	\N	A	a
+2	\N	\N	\N	\N	A	an
+3	\N	\N	\N	\N	A	the
+4	\N	\N	\N	\N	A	and
+5	\N	\N	\N	\N	A	but
+6	\N	\N	\N	\N	A	if
+7	\N	\N	\N	\N	A	or
+8	\N	\N	\N	\N	A	because
+9	\N	\N	\N	\N	A	as
+10	\N	\N	\N	\N	A	until
+11	\N	\N	\N	\N	A	while
+12	\N	\N	\N	\N	A	of
+13	\N	\N	\N	\N	A	at
+14	\N	\N	\N	\N	A	by
+15	\N	\N	\N	\N	A	for
+16	\N	\N	\N	\N	A	with
+17	\N	\N	\N	\N	A	about
+18	\N	\N	\N	\N	A	against
+19	\N	\N	\N	\N	A	between
+20	\N	\N	\N	\N	A	into
+21	\N	\N	\N	\N	A	through
+22	\N	\N	\N	\N	A	during
+23	\N	\N	\N	\N	A	before
+24	\N	\N	\N	\N	A	after
+25	\N	\N	\N	\N	A	above
+26	\N	\N	\N	\N	A	below
+27	\N	\N	\N	\N	A	to
+28	\N	\N	\N	\N	A	from
+29	\N	\N	\N	\N	A	up
+30	\N	\N	\N	\N	A	down
+31	\N	\N	\N	\N	A	in
+32	\N	\N	\N	\N	A	out
+33	\N	\N	\N	\N	A	on
+34	\N	\N	\N	\N	A	off
+35	\N	\N	\N	\N	A	over
+36	\N	\N	\N	\N	A	under
+37	\N	\N	\N	\N	A	again
+38	\N	\N	\N	\N	A	further
+39	\N	\N	\N	\N	A	then
+40	\N	\N	\N	\N	A	once
+41	\N	\N	\N	\N	A	here
+42	\N	\N	\N	\N	A	there
+43	\N	\N	\N	\N	A	when
+44	\N	\N	\N	\N	A	where
+45	\N	\N	\N	\N	A	why
+46	\N	\N	\N	\N	A	how
+47	\N	\N	\N	\N	A	all
+48	\N	\N	\N	\N	A	any
+49	\N	\N	\N	\N	A	both
+50	\N	\N	\N	\N	A	each
+51	\N	\N	\N	\N	A	few
+52	\N	\N	\N	\N	A	more
+53	\N	\N	\N	\N	A	most
+54	\N	\N	\N	\N	A	other
+55	\N	\N	\N	\N	A	some
+56	\N	\N	\N	\N	A	such
+57	\N	\N	\N	\N	A	no
+58	\N	\N	\N	\N	A	nor
+59	\N	\N	\N	\N	A	not
+60	\N	\N	\N	\N	A	only
+61	\N	\N	\N	\N	A	own
+62	\N	\N	\N	\N	A	same
+63	\N	\N	\N	\N	A	so
+64	\N	\N	\N	\N	A	than
+65	\N	\N	\N	\N	A	too
+66	\N	\N	\N	\N	A	very
+\.
+
+
+--
+-- TOC entry 2117 (class 0 OID 0)
+-- Dependencies: 174
+-- Name: overlap_conjuction_id_seq; Type: SEQUENCE SET; Schema: lexicon; Owner: postgres
+--
+
+SELECT pg_catalog.setval('overlap_conjuction_id_seq', 66, true);
+
+
+SET search_path = public, pg_catalog;
+
+--
+-- TOC entry 2118 (class 0 OID 0)
+-- Dependencies: 195
+-- Name: crawlerruleseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('crawlerruleseq', 16, true);
+
+
+--
+-- TOC entry 2119 (class 0 OID 0)
+-- Dependencies: 196
+-- Name: crawlerseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('crawlerseq', 2, true);
+
+
+--
+-- TOC entry 2120 (class 0 OID 0)
+-- Dependencies: 199
+-- Name: docarchiveseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('docarchiveseq', 927, true);
+
+
+--
+-- TOC entry 2121 (class 0 OID 0)
+-- Dependencies: 192
+-- Name: indexseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('indexseq', 3, true);
+
+
+--
+-- TOC entry 2122 (class 0 OID 0)
+-- Dependencies: 173
+-- Name: overlapconjseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('overlapconjseq', 1, false);
+
+
+--
+-- TOC entry 2097 (class 0 OID 57432)
+-- Dependencies: 190
+-- Data for Name: permissionaccess; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY permissionaccess (id, permissioncodes, privilegecode, receivercode) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2077 (class 0 OID 16395)
+-- Dependencies: 170
+-- Data for Name: play_evolutions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY play_evolutions (id, hash, applied_at, apply_script, revert_script, state, last_problem) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2123 (class 0 OID 0)
+-- Dependencies: 184
+-- Name: privilegeseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('privilegeseq', 10, true);
+
+
+--
+-- TOC entry 2124 (class 0 OID 0)
+-- Dependencies: 182
+-- Name: roleseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('roleseq', 14, true);
+
+
+--
+-- TOC entry 2125 (class 0 OID 0)
+-- Dependencies: 200
+-- Name: schedulerseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('schedulerseq', 1, false);
+
+
+--
+-- TOC entry 2126 (class 0 OID 0)
+-- Dependencies: 187
+-- Name: uamseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('uamseq', 131, true);
+
+
+--
+-- TOC entry 2084 (class 0 OID 24654)
+-- Dependencies: 177
+-- Data for Name: user_info; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY user_info (id, created_by_id, created_datetime, modified_by_id, modified_datetime, status, alias, dob, email, full_name, user_account_id) FROM stdin;
+\.
+
+
+--
+-- TOC entry 2127 (class 0 OID 0)
+-- Dependencies: 178
+-- Name: useraccountseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('useraccountseq', 4, true);
+
+
+--
+-- TOC entry 2128 (class 0 OID 0)
+-- Dependencies: 179
+-- Name: userinfoseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('userinfoseq', 4, true);
+
+
+--
+-- TOC entry 2129 (class 0 OID 0)
+-- Dependencies: 189
+-- Name: userroleseq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('userroleseq', 12, true);
+
+
+SET search_path = common, pg_catalog;
+
+--
+-- TOC entry 2057 (class 2606 OID 65639)
+-- Name: crawler_rule_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY crawler_rule
+    ADD CONSTRAINT crawler_rule_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2059 (class 2606 OID 65649)
+-- Name: crawler_type_code_key; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY crawler_type
+    ADD CONSTRAINT crawler_type_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 2061 (class 2606 OID 65647)
+-- Name: crawler_type_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY crawler_type
+    ADD CONSTRAINT crawler_type_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2063 (class 2606 OID 73831)
+-- Name: document_archive_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY document_archive
+    ADD CONSTRAINT document_archive_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2053 (class 2606 OID 57446)
+-- Name: index_type_code_key; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY index_type
+    ADD CONSTRAINT index_type_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 2055 (class 2606 OID 57444)
+-- Name: index_type_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY index_type
+    ADD CONSTRAINT index_type_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2025 (class 2606 OID 16433)
+-- Name: menu_master_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY menu_master
+    ADD CONSTRAINT menu_master_pkey PRIMARY KEY (code);
+
+
+--
+-- TOC entry 2045 (class 2606 OID 41044)
+-- Name: priv_perm_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY priv_perm
+    ADD CONSTRAINT priv_perm_pkey PRIMARY KEY (permission_code, privilege_id);
+
+
+--
+-- TOC entry 2041 (class 2606 OID 41037)
+-- Name: privilege_type_code_key; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY privilege_type
+    ADD CONSTRAINT privilege_type_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 2043 (class 2606 OID 41035)
+-- Name: privilege_type_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY privilege_type
+    ADD CONSTRAINT privilege_type_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2037 (class 2606 OID 32845)
+-- Name: role_type_code_key; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY role_type
+    ADD CONSTRAINT role_type_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 2039 (class 2606 OID 32843)
+-- Name: role_type_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY role_type
+    ADD CONSTRAINT role_type_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2065 (class 2606 OID 73841)
+-- Name: scheduler_code_key; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY scheduler
+    ADD CONSTRAINT scheduler_code_key UNIQUE (code);
+
+
+--
+-- TOC entry 2067 (class 2606 OID 73839)
+-- Name: scheduler_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY scheduler
+    ADD CONSTRAINT scheduler_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2023 (class 2606 OID 16425)
+-- Name: table_test_pk; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY test_table
+    ADD CONSTRAINT table_test_pk PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2047 (class 2606 OID 49227)
+-- Name: user_access_matrix_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY user_access_matrix
+    ADD CONSTRAINT user_access_matrix_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2029 (class 2606 OID 24651)
+-- Name: user_account_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY user_account
+    ADD CONSTRAINT user_account_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2031 (class 2606 OID 24653)
+-- Name: user_account_username_key; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY user_account
+    ADD CONSTRAINT user_account_username_key UNIQUE (username);
+
+
+--
+-- TOC entry 2035 (class 2606 OID 24678)
+-- Name: user_info_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY user_info
+    ADD CONSTRAINT user_info_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2049 (class 2606 OID 57419)
+-- Name: user_role_pkey; Type: CONSTRAINT; Schema: common; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY user_role
+    ADD CONSTRAINT user_role_pkey PRIMARY KEY (id);
+
+
+SET search_path = lexicon, pg_catalog;
+
+--
+-- TOC entry 2027 (class 2606 OID 24646)
+-- Name: overlap_conjuction_pkey; Type: CONSTRAINT; Schema: lexicon; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY overlap_conjuction
+    ADD CONSTRAINT overlap_conjuction_pkey PRIMARY KEY (id);
+
+
+SET search_path = public, pg_catalog;
+
+--
+-- TOC entry 2051 (class 2606 OID 57439)
+-- Name: permissionaccess_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY permissionaccess
+    ADD CONSTRAINT permissionaccess_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2021 (class 2606 OID 16402)
+-- Name: play_evolutions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY play_evolutions
+    ADD CONSTRAINT play_evolutions_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 2033 (class 2606 OID 24661)
+-- Name: user_info_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY user_info
+    ADD CONSTRAINT user_info_pkey PRIMARY KEY (id);
+
+
+SET search_path = common, pg_catalog;
+
+--
+-- TOC entry 2071 (class 2606 OID 41045)
+-- Name: fk494ade80cb019053; Type: FK CONSTRAINT; Schema: common; Owner: postgres
+--
+
+ALTER TABLE ONLY priv_perm
+    ADD CONSTRAINT fk494ade80cb019053 FOREIGN KEY (privilege_id) REFERENCES privilege_type(id);
+
+
+--
+-- TOC entry 2074 (class 2606 OID 57447)
+-- Name: fk4b35aea7cb019053; Type: FK CONSTRAINT; Schema: common; Owner: postgres
+--
+
+ALTER TABLE ONLY index_type
+    ADD CONSTRAINT fk4b35aea7cb019053 FOREIGN KEY (privilege_id) REFERENCES privilege_type(id);
+
+
+--
+-- TOC entry 2068 (class 2606 OID 16434)
+-- Name: fk73c3154290afe31a; Type: FK CONSTRAINT; Schema: common; Owner: postgres
+--
+
+ALTER TABLE ONLY menu_master
+    ADD CONSTRAINT fk73c3154290afe31a FOREIGN KEY (parent_menu_code) REFERENCES menu_master(code);
+
+
+--
+-- TOC entry 2070 (class 2606 OID 24679)
+-- Name: fkbc12d8a2f2b26743; Type: FK CONSTRAINT; Schema: common; Owner: postgres
+--
+
+ALTER TABLE ONLY user_info
+    ADD CONSTRAINT fkbc12d8a2f2b26743 FOREIGN KEY (user_account_id) REFERENCES user_account(id);
+
+
+--
+-- TOC entry 2072 (class 2606 OID 57420)
+-- Name: fkbc16f46ad615a995; Type: FK CONSTRAINT; Schema: common; Owner: postgres
+--
+
+ALTER TABLE ONLY user_role
+    ADD CONSTRAINT fkbc16f46ad615a995 FOREIGN KEY (role_id) REFERENCES role_type(id);
+
+
+--
+-- TOC entry 2073 (class 2606 OID 57425)
+-- Name: fkbc16f46af2b26743; Type: FK CONSTRAINT; Schema: common; Owner: postgres
+--
+
+ALTER TABLE ONLY user_role
+    ADD CONSTRAINT fkbc16f46af2b26743 FOREIGN KEY (user_account_id) REFERENCES user_account(id);
+
+
+--
+-- TOC entry 2075 (class 2606 OID 65650)
+-- Name: fkc8dcf167e008bcfe; Type: FK CONSTRAINT; Schema: common; Owner: postgres
+--
+
+ALTER TABLE ONLY crawler_rule
+    ADD CONSTRAINT fkc8dcf167e008bcfe FOREIGN KEY (crawler_type_id) REFERENCES crawler_type(id);
+
+
+--
+-- TOC entry 2076 (class 2606 OID 65655)
+-- Name: fkc8dde9a54e5dbe3a; Type: FK CONSTRAINT; Schema: common; Owner: postgres
+--
+
+ALTER TABLE ONLY crawler_type
+    ADD CONSTRAINT fkc8dde9a54e5dbe3a FOREIGN KEY (index_type_id) REFERENCES index_type(id);
+
+
+SET search_path = public, pg_catalog;
+
+--
+-- TOC entry 2069 (class 2606 OID 24666)
+-- Name: fkbc12d8a2f2b26743; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY user_info
+    ADD CONSTRAINT fkbc12d8a2f2b26743 FOREIGN KEY (user_account_id) REFERENCES common.user_account(id);
+
+
+--
+-- TOC entry 2114 (class 0 OID 0)
+-- Dependencies: 5
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+-- Completed on 2013-08-05 22:40:44
+
+--
+-- PostgreSQL database dump complete
+--
+

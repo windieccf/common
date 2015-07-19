@@ -1,0 +1,10 @@
+package com.nus.adqs.constant;
+
+public class ConstantRole {
+
+	public static final String TASK_MANAGER = "TASK_MANAGER";
+	public static final String SUPER_ADMIN = "SUPER_ADMIN";
+	public static final String TASK_USER = "TASK_USER";
+	public static final String DEAN = "DEAN";
+	
+}

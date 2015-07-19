@@ -1,0 +1,53 @@
+package com.nus.adqs.dataaccess.scalar;
+
+import java.math.BigDecimal;
+
+import com.nus.adqs.constant.ConstantContentType;
+import com.nus.adqs.util.StringUtil;
+
+public class SearchResult {
+	
+
+	private String sourceId;
+	public String getSourceId() {return sourceId;}
+	public void setSourceId(String sourceId) {this.sourceId = sourceId;}
+
+	private String contentHeader;
+	public String getContentHeader() {return contentHeader;}
+	public void setContentHeader(String contentHeader) {this.contentHeader = contentHeader;	}
+	
+	private String contentHighlight;
+	public String getContentHighlight() {return contentHighlight;}
+	public void setContentHighlight(String contentHighlight) {this.contentHighlight = contentHighlight;	}
+	public String getContentHighlightDisplay() {return StringUtil.getEmptyIfNull(contentHighlight);}
+	
+	private String sentenceHighLight;
+	public String getSentenceHighLight() {return sentenceHighLight;}
+	public void setSentenceHighLight(String sentenceHighLight) {this.sentenceHighLight = sentenceHighLight;}
+
+	private String contentUrl;
+	public String getContentUrl() {return contentUrl;}
+	public void setContentUrl(String contentUrl) {this.contentUrl = contentUrl;}
+	
+	private String contentType;
+	public String getContentType() {return contentType;}
+	public void setContentType(String contentType) {this.contentType = contentType;}
+	
+	private String contentTypeEncoded;
+	public String getContentTypeEncoded() {return contentTypeEncoded;}
+	public void setContentTypeEncoded(String contentTypeEncoded) {this.contentTypeEncoded = contentTypeEncoded;}
+
+	private String type; // either file system or web
+	public String getType() {return type;}
+	public void setType(String type) {this.type = type;}
+	
+	private BigDecimal score  = new BigDecimal("0");
+	public BigDecimal getScore() {return score;}
+	public void setScore(BigDecimal score) {this.score = score;}
+	public String getScoreAsDisplay(){return score.setScale(5, BigDecimal.ROUND_HALF_UP).toString();}
+	
+	public boolean isPdfContent(){return ConstantContentType.PDF.equals(this.getContentType());}
+	public boolean isUrlContent(){return ConstantContentType.URL.equals(this.getContentType());}
+
+
+}
